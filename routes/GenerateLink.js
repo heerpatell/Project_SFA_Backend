@@ -1549,10 +1549,10 @@ router.post('/exporttoexcel', async (req, res) => {
                   }))
                 : [{
                     _id: session._id.toString(),
-                    no_of_participants: '',
-                    no_of_rounds: '',
-                    condition: '',
-                    link: '',
+                    no_of_participants: session.no_of_participants,
+                    no_of_rounds: session.no_of_rounds,
+                    condition: session.condition,
+                    link: session.link,
                     participant_number: p.participant_number,
                     assigned_category: p.assigned_category,
                     gender: p.gender,
@@ -1574,17 +1574,23 @@ router.post('/exporttoexcel', async (req, res) => {
                   }];
 
               // Add rows to worksheet1
-              responseRowData.forEach(rowData => worksheet1.addRow(rowData));
+              responseRowData.forEach(rowData => {
+                const rowKey = `${rowData._id}-${rowData.participant_number}`; // Create a unique key for the row
+                if (!addedRowsSet.has(rowKey)) {
+                  addedRowsSet.add(rowKey); // Mark it as added
+                  worksheet1.addRow(rowData);
+                }
+              });
             }
           }
         }
       } else {
         worksheet1.addRow({
           _id: session._id.toString(),
-          no_of_participants: '',
-          no_of_rounds: '',
-          condition: '',
-          link: '',
+          no_of_participants: session.no_of_participants,
+          no_of_rounds: session.no_of_rounds,
+          condition: session.condition,
+          link: session.link,
           participant_number: '',
           assigned_category: '',
           gender: '',
@@ -1623,18 +1629,17 @@ router.post('/exporttoexcel', async (req, res) => {
               cumulativeWorker += entry.totalCompWorker || 0;
               cumulativeCustomer += entry.totalCompCustomer || 0;
 
-              const cost = effortToTokens[entry.effort] || '';
-
+              // Add each entry to worksheet2
               worksheet2.addRow({
-                sessionId: session._id.toString(), // Include session ID if needed
-                roundnumber: roundIndex + 1, // Assuming round numbers are 1-based
+                sessionId: session._id.toString(),
+                roundnumber: roundIndex + 1,
                 worker: entry.worker || '',
                 customer: entry.customer || '',
                 tip: entry.preTip || '',
                 totalCompCustomer: entry.totalCompCustomer || '',
                 totalCompWorker: entry.totalCompWorker || '',
-                effort: entry.effort === 0.1 ? 0 : entry.effort, // Set to 0 if effort is 0.1
-                cost: cost,
+                effort: entry.effort, // Set to 0 if effort is 0.1
+                cost: entry.effort === 0.1 ? 0 :entry.cost, // Assuming entry.cost exists
                 cumulativeCustomer: cumulativeCustomer,
                 cumulativeWorker: cumulativeWorker,
               });
@@ -1684,5 +1689,6 @@ router.post('/exporttoexcel', async (req, res) => {
     res.status(500).send({ msg: 'Error exporting data to Excel', error: error.message });
   }
 });
+
 
 module.exports = router;
