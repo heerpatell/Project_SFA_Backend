@@ -1483,6 +1483,7 @@ router.post('/exporttoexcel', async (req, res) => {
     ];
 
     const effortToTokens = {
+      0:0,
       0.1: 0,
       0.2: 5,
       0.3: 10,
@@ -1506,14 +1507,16 @@ router.post('/exporttoexcel', async (req, res) => {
       // Fetch participants for this session ID
       const participants = await Participants.find({ sessionId: session._id });
 
-      const participantNumbersSet = new Set(); // To keep track of participant numbers already added
+      const addedRowsSet = new Set(); // To keep track of unique rows added
 
       if (participants.length > 0) {
         for (const participant of participants) {
           for (const p of participant.participants) {
-            // Check if this participant number has already been added
-            if (!participantNumbersSet.has(p.participant_number)) {
-              participantNumbersSet.add(p.participant_number); // Mark it as added
+            const uniqueKey = `${session._id}-${p.participant_number}`; // Create a unique key
+
+            // Check if this row has already been added
+            if (!addedRowsSet.has(uniqueKey)) {
+              addedRowsSet.add(uniqueKey); // Mark it as added
 
               // Fetch responses for this session and participant number
               const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
@@ -1625,7 +1628,7 @@ router.post('/exporttoexcel', async (req, res) => {
 
               worksheet2.addRow({
                 sessionId: session._id.toString(), // Include session ID if needed
-                roundnumber: roundIndex + 1, // Round numbers are typically 1-based
+                roundnumber: roundIndex + 1, // Assuming round numbers are 1-based
                 worker: entry.worker || '',
                 customer: entry.customer || '',
                 tip: entry.preTip || '',
