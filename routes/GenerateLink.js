@@ -1467,7 +1467,6 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 20 },
     ];
 
-    // Define columns for the Round Details sheet
     worksheet2.columns = [
       { header: 'Session ID', key: 'sessionId', width: 30 },
       { header: 'Round Number', key: 'roundnumber', width: 20 },
