@@ -1483,7 +1483,6 @@ router.post('/exporttoexcel', async (req, res) => {
     ];
 
     const effortToTokens = {
-      0:0,
       0.1: 0,
       0.2: 5,
       0.3: 10,
@@ -1503,11 +1502,11 @@ router.post('/exporttoexcel', async (req, res) => {
       return res.status(404).send({ msg: "No sessions found" });
     }
 
+    const addedRowsSet = new Set(); // To keep track of unique rows added
+
     for (const session of sessions) {
       // Fetch participants for this session ID
       const participants = await Participants.find({ sessionId: session._id });
-
-      const addedRowsSet = new Set(); // To keep track of unique rows added
 
       if (participants.length > 0) {
         for (const participant of participants) {
@@ -1522,9 +1521,8 @@ router.post('/exporttoexcel', async (req, res) => {
               const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
 
               // Add session data to the first worksheet
-              if (responses.length > 0) {
-                responses.forEach(response => {
-                  worksheet1.addRow({
+              const responseRowData = responses.length > 0
+                ? responses.map(response => ({
                     _id: session._id.toString(),
                     no_of_participants: session.no_of_participants,
                     no_of_rounds: session.no_of_rounds,
@@ -1548,35 +1546,35 @@ router.post('/exporttoexcel', async (req, res) => {
                     TipReason_Effort: response.TipReason_Effort,
                     TipReason_SocialImage: response.TipReason_SocialImage,
                     TipReason_SocialNorm: response.TipReason_SocialNorm,
-                  });
-                });
-              } else {
-                worksheet1.addRow({
-                  _id: session._id.toString(),
-                  no_of_participants: '',
-                  no_of_rounds: '',
-                  condition: '',
-                  link: '',
-                  participant_number: p.participant_number,
-                  assigned_category: p.assigned_category,
-                  gender: p.gender,
-                  age: p.age,
-                  workexperience: p.workexperience,
-                  foodindustry: p.foodindustry,
-                  EffortSensitivity_Manager: '',
-                  EffortSensitivity_Customer: '',
-                  Observability_Manager: '',
-                  Observability_Customer: '',
-                  MentalAccount: '',
-                  controllability1: '',
-                  controllability2: '',
-                  response: '',
-                  amount: '',
-                  TipReason_Effort: '',
-                  TipReason_SocialImage: '',
-                  TipReason_SocialNorm: '',
-                });
-              }
+                  }))
+                : [{
+                    _id: session._id.toString(),
+                    no_of_participants: '',
+                    no_of_rounds: '',
+                    condition: '',
+                    link: '',
+                    participant_number: p.participant_number,
+                    assigned_category: p.assigned_category,
+                    gender: p.gender,
+                    age: p.age,
+                    workexperience: p.workexperience,
+                    foodindustry: p.foodindustry,
+                    EffortSensitivity_Manager: '',
+                    EffortSensitivity_Customer: '',
+                    Observability_Manager: '',
+                    Observability_Customer: '',
+                    MentalAccount: '',
+                    controllability1: '',
+                    controllability2: '',
+                    response: '',
+                    amount: '',
+                    TipReason_Effort: '',
+                    TipReason_SocialImage: '',
+                    TipReason_SocialNorm: '',
+                  }];
+
+              // Add rows to worksheet1
+              responseRowData.forEach(rowData => worksheet1.addRow(rowData));
             }
           }
         }
@@ -1608,6 +1606,7 @@ router.post('/exporttoexcel', async (req, res) => {
         });
       }
 
+      // Now handle matches for the session
       let matches = await Match.find({ sessionId: session._id });
       if (matches.length > 0) {
         matches = matches[0]; // Assuming we want the first match document
