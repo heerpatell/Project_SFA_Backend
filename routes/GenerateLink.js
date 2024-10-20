@@ -339,12 +339,33 @@ router.post('/screen11reachedcountincrease', async (req, res) => {
    
         console.log(318, workers)
         console.log(319, customers)
+
+        let uniqueWorkers = [];
+        let workerNumbers = new Set();
+        for (let worker of workers) {
+            if (!workerNumbers.has(worker.participant_number)) {
+                uniqueWorkers.push(worker);
+                workerNumbers.add(worker.participant_number);
+            }
+        }
+
+        // For customers
+        let uniqueCustomers = [];
+        let customerNumbers = new Set();
+        for (let customer of customers) {
+            if (!customerNumbers.has(customer.participant_number)) {
+                uniqueCustomers.push(customer);
+                customerNumbers.add(customer.participant_number);
+            }
+        }
+
+
         // Create matches for different rounds
         const matchesByRound = {};
 
         for (const roundName of rounds) {
-          let shuffledWorkers = shuffleArray([...workers]);
-          let shuffledCustomers = shuffleArray([...customers]);
+          let shuffledWorkers = shuffleArray([...uniqueWorkers]);
+          let shuffledCustomers = shuffleArray([...uniqueCustomers]);
 
           const matches = [];
           const usedWorkers = new Set();
