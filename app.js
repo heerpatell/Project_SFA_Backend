@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const jwt = require("jsonwebtoken");
 const { Server } = require('socket.io');
-const port = 5000; // Use the same port for both HTTP and WebSocket
+const port = process.env.PORT || 5000; // Use the same port for both HTTP and WebSocket
 const ParticipantSocket = require('./models/ParticipantSocket')
 const Sessions = require("./models/Sessions");
 
