@@ -1467,7 +1467,6 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 20 },
     ];
 
-    // Define columns for the Round Details sheet
     worksheet2.columns = [
       { header: 'Session ID', key: 'sessionId', width: 30 },
       { header: 'Round Number', key: 'roundnumber', width: 20 },
@@ -1502,8 +1501,6 @@ router.post('/exporttoexcel', async (req, res) => {
       return res.status(404).send({ msg: "No sessions found" });
     }
 
-    const addedRowsSet = new Set(); // To keep track of unique rows added
-
     for (const session of sessions) {
       // Fetch participants for this session ID
       const participants = await Participants.find({ sessionId: session._id });
@@ -1511,75 +1508,63 @@ router.post('/exporttoexcel', async (req, res) => {
       if (participants.length > 0) {
         for (const participant of participants) {
           for (const p of participant.participants) {
-            const uniqueKey = `${session._id}-${p.participant_number}`; // Create a unique key
+            // Fetch responses for this session and participant number
+            const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
 
-            // Check if this row has already been added
-            if (!addedRowsSet.has(uniqueKey)) {
-              addedRowsSet.add(uniqueKey); // Mark it as added
-
-              // Fetch responses for this session and participant number
-              const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
-
-              // Add session data to the first worksheet
-              const responseRowData = responses.length > 0
-                ? responses.map(response => ({
-                    _id: session._id.toString(),
-                    no_of_participants: session.no_of_participants,
-                    no_of_rounds: session.no_of_rounds,
-                    condition: session.condition,
-                    link: session.link,
-                    participant_number: p.participant_number,
-                    assigned_category: p.assigned_category,
-                    gender: p.gender,
-                    age: p.age,
-                    workexperience: p.workexperience,
-                    foodindustry: p.foodindustry,
-                    EffortSensitivity_Manager: response.EffortSensitivity_Manager,
-                    EffortSensitivity_Customer: response.EffortSensitivity_Customer,
-                    Observability_Manager: response.Observability_Manager,
-                    Observability_Customer: response.Observability_Customer,
-                    MentalAccount: response.MentalAccount,
-                    controllability1: response.controllability1,
-                    controllability2: response.controllability2,
-                    response: response.response,
-                    amount: response.amount,
-                    TipReason_Effort: response.TipReason_Effort,
-                    TipReason_SocialImage: response.TipReason_SocialImage,
-                    TipReason_SocialNorm: response.TipReason_SocialNorm,
-                  }))
-                : [{
-                    _id: session._id.toString(),
-                    no_of_participants: session.no_of_participants,
-                    no_of_rounds: session.no_of_rounds,
-                    condition: session.condition,
-                    link: session.link,
-                    participant_number: p.participant_number,
-                    assigned_category: p.assigned_category,
-                    gender: p.gender,
-                    age: p.age,
-                    workexperience: p.workexperience,
-                    foodindustry: p.foodindustry,
-                    EffortSensitivity_Manager: '',
-                    EffortSensitivity_Customer: '',
-                    Observability_Manager: '',
-                    Observability_Customer: '',
-                    MentalAccount: '',
-                    controllability1: '',
-                    controllability2: '',
-                    response: '',
-                    amount: '',
-                    TipReason_Effort: '',
-                    TipReason_SocialImage: '',
-                    TipReason_SocialNorm: '',
-                  }];
-
-              // Add rows to worksheet1
-              responseRowData.forEach(rowData => {
-                const rowKey = `${rowData._id}-${rowData.participant_number}`; // Create a unique key for the row
-                if (!addedRowsSet.has(rowKey)) {
-                  addedRowsSet.add(rowKey); // Mark it as added
-                  worksheet1.addRow(rowData);
-                }
+            // Add session data to the first worksheet
+            if (responses.length > 0) {
+              responses.forEach(response => {
+                worksheet1.addRow({
+                  _id: session._id.toString(),
+                  no_of_participants: session.no_of_participants,
+                  no_of_rounds: session.no_of_rounds,
+                  condition: session.condition,
+                  link: session.link,
+                  participant_number: p.participant_number,
+                  assigned_category: p.assigned_category,
+                  gender: p.gender,
+                  age: p.age,
+                  workexperience: p.workexperience,
+                  foodindustry: p.foodindustry,
+                  EffortSensitivity_Manager: response.EffortSensitivity_Manager,
+                  EffortSensitivity_Customer: response.EffortSensitivity_Customer,
+                  Observability_Manager: response.Observability_Manager,
+                  Observability_Customer: response.Observability_Customer,
+                  MentalAccount: response.MentalAccount,
+                  controllability1: response.controllability1,
+                  controllability2: response.controllability2,
+                  response: response.response,
+                  amount: response.amount,
+                  TipReason_Effort: response.TipReason_Effort,
+                  TipReason_SocialImage: response.TipReason_SocialImage,
+                  TipReason_SocialNorm: response.TipReason_SocialNorm,
+                });
+              });
+            } else {
+              worksheet1.addRow({
+                _id: session._id.toString(),
+                no_of_participants: '',
+                no_of_rounds: '',
+                condition: '',
+                link: '',
+                participant_number: '',
+                assigned_category: '',
+                gender: '',
+                age: '',
+                workexperience: '',
+                foodindustry: '',
+                EffortSensitivity_Manager: '',
+                EffortSensitivity_Customer: '',
+                Observability_Manager: '',
+                Observability_Customer: '',
+                MentalAccount: '',
+                controllability1: '',
+                controllability2: '',
+                response: '',
+                amount: '',
+                TipReason_Effort: '',
+                TipReason_SocialImage: '',
+                TipReason_SocialNorm: '',
               });
             }
           }
@@ -1587,10 +1572,10 @@ router.post('/exporttoexcel', async (req, res) => {
       } else {
         worksheet1.addRow({
           _id: session._id.toString(),
-          no_of_participants: session.no_of_participants,
-          no_of_rounds: session.no_of_rounds,
-          condition: session.condition,
-          link: session.link,
+          no_of_participants: '',
+          no_of_rounds: '',
+          condition: '',
+          link: '',
           participant_number: '',
           assigned_category: '',
           gender: '',
@@ -1612,7 +1597,6 @@ router.post('/exporttoexcel', async (req, res) => {
         });
       }
 
-      // Now handle matches for the session
       let matches = await Match.find({ sessionId: session._id });
       if (matches.length > 0) {
         matches = matches[0]; // Assuming we want the first match document
@@ -1625,39 +1609,26 @@ router.post('/exporttoexcel', async (req, res) => {
         rounds.forEach((roundMatch, roundIndex) => {
           if (roundMatch && Array.isArray(roundMatch)) {
             roundMatch.forEach(entry => {
+              console.log(`Processing Round ${roundIndex + 1}:`, roundMatch);
               // Update cumulative compensation totals
               cumulativeWorker += entry.totalCompWorker || 0;
               cumulativeCustomer += entry.totalCompCustomer || 0;
 
-              // Add each entry to worksheet2
+              const cost = effortToTokens[entry.effort] || '';
+
               worksheet2.addRow({
-                sessionId: session._id.toString(),
-                roundnumber: roundIndex + 1,
-                worker: entry.worker || '',
-                customer: entry.customer || '',
-                tip: entry.preTip || '',
-                totalCompCustomer: entry.totalCompCustomer || '',
+                sessionId: session._id.toString(), // Include session ID if needed
+                roundnumber: roundIndex + 1, // Round numbers are usually 1-indexed
+                worker: entry.worker || '', // Worker ID or name
+                customer: entry.customer || '', // Customer ID or name
+                tip: entry.pretip || '', // Pre-tip information if it exists
+                totalCompCustomer: entry.totalCompCustomer || '', // Total compensation for the round
                 totalCompWorker: entry.totalCompWorker || '',
-                effort: entry.effort, // Set to 0 if effort is 0.1
-                cost: entry.effort === 0.1 ? 0 :entry.cost, // Assuming entry.cost exists
-                cumulativeCustomer: cumulativeCustomer,
-                cumulativeWorker: cumulativeWorker,
+                effort: entry.effort || '',
+                cost: cost,
+                cumulativeCustomer: cumulativeCustomer, // Cumulative compensation for the customer
+                cumulativeWorker: cumulativeWorker, // Cumulative compensation for the worker
               });
-            });
-          } else {
-            // Add an empty row if no matches are found
-            worksheet2.addRow({
-              sessionId: session._id.toString(),
-              roundnumber: '',
-              worker: '',
-              customer: '',
-              tip: '',
-              totalCompCustomer: '',
-              totalCompWorker: '',
-              effort: '',
-              cost: '',
-              cumulativeCustomer: '',
-              cumulativeWorker: '',
             });
           }
         });
