@@ -1588,7 +1588,7 @@ router.post('/exporttoexcel', async (req, res) => {
 
               worksheet2.addRow({
                 sessionId: session._id.toString(),
-                roundnumber: roundIndex + 1,
+                roundnumber: roundIndex,
                 worker: entry.worker || '',
                 customer: entry.customer || '',
                 tip: entry.pretip || '',
