@@ -21,7 +21,7 @@ router.route("/link").post(async (req, res) => {
     const { participants, condition } = req.body;
 
     const uniqueLinkID = Math.random().toString(36).substring(7);
-    const link = `http://localhost:3000/link/${uniqueLinkID}`;
+    const link = `https://project-sfa-frontend.vercel.app/link/${uniqueLinkID}`;
 
     const round = 10;
     const savedSession = new Sessions({
