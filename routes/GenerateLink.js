@@ -668,6 +668,7 @@ router.route('/addworkertip').post(async (req, res) => {
       if (!Array.isArray(roundEntries)) {
         return res.status(500).send({ msg: "Round entries are not in expected format" });
       }
+
       const updatedEntries = roundEntries.map(entry => {
         if (entry.customer === pnumber) {
           const effortToTokens = {
@@ -683,11 +684,27 @@ router.route('/addworkertip').post(async (req, res) => {
             1.0: 90,
           };
           const effortTokens = Number(effortToTokens[entry.effort]) || 0;
-
-          return { ...entry, pretip:tip, totalCompWorker: 160 + Number(tip) - Number(effortTokens), totalCompCustomer:60 + Number(entry.effort*200)- Number(tip), cumulativeCustomer:entry.cumulativeCustomer, cumulativeWorker:entry.worker }; 
+          const effort = Number(entry.effort) || 0; // Ensure effort is a number
+          const workerTip = Number(tip) || 0; // Ensure tip is a number
+          const totalCompWorker = 160 + workerTip - effortTokens; // Calculate total compensation for worker
+          const totalCompCustomer = 60 + effort * 200 - workerTip; // Calculate total compensation for customer
+      
+          if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
+            return res.status(500).send({ msg: "Invalid calculation for total compensation" });
+          }
+      
+          return { 
+            ...entry, 
+            pretip: tip, 
+            totalCompWorker, 
+            totalCompCustomer, 
+            cumulativeCustomer: entry.cumulativeCustomer, 
+            cumulativeWorker: entry.worker 
+          };
         }
-        return entry; // Return unchanged entry
-      });  
+        return entry;
+      });
+      
       // Update the matches object
       matches.set(currentround, updatedEntries);
       // Save the updated match document
