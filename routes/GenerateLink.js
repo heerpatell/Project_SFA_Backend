@@ -21,7 +21,7 @@ router.route("/link").post(async (req, res) => {
     const { participants, condition } = req.body;
 
     const uniqueLinkID = Math.random().toString(36).substring(7);
-    const link = `https://project-sfa-frontend-1.onrender.com/link/${uniqueLinkID}`;
+    const link = `https://master.dznu6nl7tbtnq.amplifyapp.com/link/${uniqueLinkID}`;
 
     const round = 10;
     const savedSession = new Sessions({
@@ -687,7 +687,7 @@ router.route('/addworkertip').post(async (req, res) => {
           const effort = Number(entry.effort) || 0; // Ensure effort is a number
           const workerTip = Number(tip) || 0; // Ensure tip is a number
           const totalCompWorker = 160 + workerTip - effortTokens; // Calculate total compensation for worker
-          const totalCompCustomer = 60 + effort * 200 - workerTip; // Calculate total compensation for customer
+          const totalCompCustomer = 60 + (effort * 200) - workerTip; // Calculate total compensation for customer
       
           if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
             return res.status(500).send({ msg: "Invalid calculation for total compensation" });
@@ -1512,7 +1512,7 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Customer', key: 'customer', width: 20 },
       { header: 'Effort', key: 'effort', width: 20 },
       { header: 'Cost Of Effort', key: 'cost', width: 20 },
-      { header: 'Tip', key: 'preTip', width: 20 },
+      { header: 'Tip', key: 'pretip', width: 20 },
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
       { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
