@@ -21,7 +21,7 @@ router.route("/link").post(async (req, res) => {
     const { participants, condition } = req.body;
 
     const uniqueLinkID = Math.random().toString(36).substring(7);
-    const link = `https://master.dznu6nl7tbtnq.amplifyapp.com/link/${uniqueLinkID}`;
+    const link = `http://3.131.157.146/link/${uniqueLinkID}`;
 
     const round = 10;
     const savedSession = new Sessions({
