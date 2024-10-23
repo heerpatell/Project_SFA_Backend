@@ -21,7 +21,7 @@ router.route("/link").post(async (req, res) => {
     const { participants, condition } = req.body;
 
     const uniqueLinkID = Math.random().toString(36).substring(7);
-    const link = `http://3.19.77.47/link/${uniqueLinkID}`;
+    const link = `http://localhost:3000/link/${uniqueLinkID}`;
 
     const round = 10;
     const savedSession = new Sessions({
