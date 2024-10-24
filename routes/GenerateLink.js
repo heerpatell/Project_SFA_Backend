@@ -1411,29 +1411,33 @@ router.post('/postresponse', async (req, res) => {
 
 router.post('/postanswersfrom27', async(req,res)=>{
   try{
-    const { gender, age, workExperience, foodIndustryExperience,pnumber } = req.body;  
+    const { gender, age, workExperience, foodIndustryExperience } = req.body;  
+    const pnumber = parseInt(req.body.pnumber, 10)
 
-    const participant = await Participants.findOneAndUpdate(
-      { 'participants.participant_number': pnumber }, // Find participant by participant_number
+    const updateResult = await Participants.updateOne(
+      { 'participants.participant_number': pnumber },  // Find the participant by participant_number
       {
-          $set: {
-              'participants.$.gender': gender,
-              'participants.$.age': age,
-              'participants.$.workexperience': workExperience,
-              'participants.$.foodindustry': foodIndustryExperience
-          }
+        $set: {
+          'participants.$[elem].gender': gender,
+          'participants.$[elem].age': age,
+          'participants.$[elem].workexperience': workExperience,
+          'participants.$[elem].foodindustry': foodIndustryExperience
+        }
       },
-      { new: true } // Returns the updated document
-  );
+      {
+        arrayFilters: [{ 'elem.participant_number': pnumber }], // Specify the array filter
+        new: true
+      }
+    );
 
-  if (participant) {
-    res.status(200).json({
+    if (updateResult.nModified > 0) {
+      res.status(200).json({
         msg: 'Participant updated successfully',
-        participant
-    });
-  } else {
-    res.status(404).json({ msg: 'Participant not found' });
-  }
+        updateResult
+      });
+    } else {
+      res.status(404).json({ msg: 'Participant not found or no updates made' });
+    }
 
   }catch(e){
     console.log('error: ', e)
