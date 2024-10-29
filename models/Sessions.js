@@ -17,15 +17,17 @@ const SessionSchema = new mongoose.Schema({
         type:String
     }
 },{ timestamps: true })
-SessionSchema.virtual('createdAtEDT').get(function() {
-    return this.createdAt ? this.createdAt.toLocaleString("en-US", { timeZone: "America/New_York" }) : null;
+
+SessionSchema.pre('save', function(next) {
+    const edtDate = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+    const edtOffset = new Date(edtDate).getTime() - new Date().getTime();
+
+    if (this.isNew) {
+        this.createdAt = new Date(this.createdAt.getTime() + edtOffset);
+    }
+    this.updatedAt = new Date(this.updatedAt.getTime() + edtOffset);
+    next();
 });
 
-SessionSchema.virtual('updatedAtEDT').get(function() {
-    return this.updatedAt ? this.updatedAt.toLocaleString("en-US", { timeZone: "America/New_York" }) : null;
-});
-
-SessionSchema.set('toJSON', { virtuals: true });
-SessionSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model("Session",SessionSchema)
