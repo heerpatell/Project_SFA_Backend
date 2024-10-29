@@ -17,5 +17,11 @@ const SessionSchema = new mongoose.Schema({
         type:String
     }
 },{ timestamps: true })
+SessionSchema.methods.getCreatedAtEDT = function() {
+    return this.createdAt.toLocaleString("en-US", { timeZone: "America/New_York" })
+}
 
+SessionSchema.methods.getUpdatedAtEDT = function() {
+    return this.updatedAt.toLocaleString("en-US", { timeZone: "America/New_York" })
+}
 module.exports = mongoose.model("Session",SessionSchema)
