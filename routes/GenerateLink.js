@@ -1410,38 +1410,51 @@ router.post('/postresponse', async (req, res) => {
 });
 
 router.post('/postanswersfrom27', async(req,res)=>{
-  try{
-    const { gender, age, workExperience, foodIndustryExperience } = req.body;  
-    const pnumber = parseInt(req.body.pnumber, 10)
+  const token = req.body.token;
 
-    const updateResult = await Participants.updateOne(
-      { 'participants.participant_number': pnumber },  // Find the participant by participant_number
-      {
-        $set: {
-          'participants.$[elem].gender': gender,
-          'participants.$[elem].age': age,
-          'participants.$[elem].workexperience': workExperience,
-          'participants.$[elem].foodindustry': foodIndustryExperience
-        }
-      },
-      {
-        arrayFilters: [{ 'elem.participant_number': pnumber }], // Specify the array filter
-        new: true
-      }
-    );
+  if (!token) {
+    return res.status(401).send({ msg: "Access denied" });
+  }
 
-    if (updateResult.nModified > 0) {
-      res.status(200).json({
-        msg: 'Participant updated successfully',
-        updateResult
-      });
-    } else {
-      res.status(404).json({ msg: 'Participant not found or no updates made' });
+  jwt.verify(token, "secretKey", async (err, decodedToken) => {
+    if (err) {
+      return res.status(403).send({ msg: "Access denied" });
     }
 
-  }catch(e){
-    console.log('error: ', e)
-  }
+    try{
+      const { gender, age, workExperience, foodIndustryExperience } = req.body;  
+      const pnumber = parseInt(req.body.pnumber, 10)
+  
+      const updateResult = await Participants.updateOne(
+        { 'participants.participant_number': pnumber },  // Find the participant by participant_number
+        {
+          $set: {
+            'participants.$[elem].gender': gender,
+            'participants.$[elem].age': age,
+            'participants.$[elem].workexperience': workExperience,
+            'participants.$[elem].foodindustry': foodIndustryExperience
+          }
+        },
+        {
+          arrayFilters: [{ 'elem.participant_number': pnumber }], // Specify the array filter
+          new: true
+        }
+      );
+  
+      if (updateResult.nModified > 0) {
+        res.status(200).json({
+          msg: 'Participant updated successfully',
+          updateResult
+        });
+      } else {
+        res.status(404).json({ msg: 'Participant not found or no updates made' });
+      }
+  
+    }catch(e){
+      console.log('error: ', e)
+    }
+  });
+
 })
 
 router.post('/postamount',async(req,res)=>{
