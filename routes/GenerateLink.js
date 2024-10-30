@@ -1441,14 +1441,18 @@ router.post('/postanswersfrom27', async(req,res)=>{
         }
       );
   
-      if (updateResult.nModified > 0) {
-        res.status(200).json({
-          msg: 'Participant updated successfully',
-          updateResult
-        });
-      } else {
-        res.status(200).json({ msg: 'Participant not found or no updates made' });
-      }
+      res.status(200).json({
+        msg: 'Participant updated successfully',
+        updateResult
+      });
+      // if (updateResult.nModified > 0) {
+      //   res.status(200).json({
+      //     msg: 'Participant updated successfully',
+      //     updateResult
+      //   });
+      // } else {
+      //   res.status(200).json({ msg: 'Participant not found or no updates made' });
+      // }
   
     }catch(e){
       console.log('error: ', e)
