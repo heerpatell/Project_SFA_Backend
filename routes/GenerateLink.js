@@ -1447,7 +1447,7 @@ router.post('/postanswersfrom27', async(req,res)=>{
           updateResult
         });
       } else {
-        res.status(404).json({ msg: 'Participant not found or no updates made' });
+        res.status(200).json({ msg: 'Participant not found or no updates made' });
       }
   
     }catch(e){
