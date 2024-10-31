@@ -611,12 +611,12 @@ router.post('/addeffortlevel', async (req, res) => {
     const effortTokens = Number(effortToTokens[effortlevel]) || 0; 
     entry.cost = effortToTokens[effortlevel]
     if(condition == 'Fixed Condition'){
-      entry.totalCompWorker = 200 - effortTokens;
-      entry.totalCompCustomer = 60 + (effortlevel*200);
+      entry.totalCompWorker = 200 - Number(effortTokens);
+      entry.totalCompCustomer = 60 + Number(effortlevel*200);
     }
     else if(condition == 'Service Charge'){
-      entry.totalCompWorker = 160 + 40 - effortTokens
-      entry.totalCompCustomer = 60 + (effortlevel*200) - 40;
+      entry.totalCompWorker = 160 + 40 - Number(effortTokens)
+      entry.totalCompCustomer = 60 + Number(effortlevel*200) - 40;
     }
 
 
@@ -686,8 +686,8 @@ router.route('/addworkertip').post(async (req, res) => {
           const effortTokens = Number(effortToTokens[entry.effort]) || 0;
           const effort = Number(entry.effort) || 0; // Ensure effort is a number
           const workerTip = Number(tip) || 0; // Ensure tip is a number
-          const totalCompWorker = 160 + workerTip - effortTokens; // Calculate total compensation for worker
-          const totalCompCustomer = 60 + (effort * 200) - workerTip; // Calculate total compensation for customer
+          const totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
+          const totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
       
           if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
             return res.status(500).send({ msg: "Invalid calculation for total compensation" });
