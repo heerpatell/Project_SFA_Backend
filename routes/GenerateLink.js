@@ -642,7 +642,7 @@ router.post('/addeffortlevel', async (req, res) => {
 
 router.route('/addworkertip').post(async (req, res) => {
   const token = req.body.token;
-  let { pnumber, tip, currentround } = req.body;
+  let { pnumber, tip, currentround, condition } = req.body;
 
   if (!token) {
     return res.status(401).send({ msg: "access denied" });
@@ -687,23 +687,29 @@ router.route('/addworkertip').post(async (req, res) => {
             0.9: 75,
             1.0: 90,
           };
-          // const effortTokens = Number(effortToTokens[entry.effort]) || 0;
-          // const effort = Number(entry.effort) || 0; // Ensure effort is a number
-          // const workerTip = Number(tip) || 0; // Ensure tip is a number
-          // const totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
-          // const totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
-      
-          // if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
-          //   return res.status(500).send({ msg: "Invalid calculation for total compensation" });
-          // }
+
+          if(condition == 'Post-Tip'){
+            const effortTokens = Number(effortToTokens[entry.effort]) || 0;
+            const effort = Number(entry.effort) || 0; // Ensure effort is a number
+            const workerTip = Number(tip) || 0; // Ensure tip is a number
+            const totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
+            const totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
+        
+            if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
+              return res.status(500).send({ msg: "Invalid calculation for total compensation" });
+            }
+
+            return { 
+              ...entry, 
+              pretip: tip, 
+              totalCompWorker, 
+              totalCompCustomer 
+            };
+          }
       
           return { 
             ...entry, 
-            pretip: tip, 
-            // totalCompWorker, 
-            // totalCompCustomer, 
-            // cumulativeCustomer: entry.cumulativeCustomer, 
-            // cumulativeWorker: entry.worker 
+            pretip: tip 
           };
         }
         return entry;
