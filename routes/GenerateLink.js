@@ -1650,7 +1650,7 @@ router.post('/exporttoexcel', async (req, res) => {
                 roundnumber: roundIndex,
                 worker: entry.worker || '',
                 customer: entry.customer || '',
-                pretip: entry.pretip || '',
+                preip: entry.pretip || '',
                 totalCompCustomer: entry.totalCompCustomer || '',
                 totalCompWorker: entry.totalCompWorker || '',
                 effort: entry.effort || '',
