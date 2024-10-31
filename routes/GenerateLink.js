@@ -700,10 +700,10 @@ router.route('/addworkertip').post(async (req, res) => {
           return { 
             ...entry, 
             pretip: tip, 
-            totalCompWorker, 
-            totalCompCustomer, 
-            cumulativeCustomer: entry.cumulativeCustomer, 
-            cumulativeWorker: entry.worker 
+            // totalCompWorker, 
+            // totalCompCustomer, 
+            // cumulativeCustomer: entry.cumulativeCustomer, 
+            // cumulativeWorker: entry.worker 
           };
         }
         return entry;
