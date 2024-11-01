@@ -705,7 +705,8 @@ router.route('/addworkertip').post(async (req, res) => {
               totalCompWorker, 
               totalCompCustomer 
             };
-          }else{
+          }
+          if(condition == 'Pre-Tip'){
             return { 
               ...entry, 
               pretip: tip 
