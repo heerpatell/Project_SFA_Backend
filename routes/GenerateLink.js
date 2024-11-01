@@ -705,12 +705,12 @@ router.route('/addworkertip').post(async (req, res) => {
               totalCompWorker, 
               totalCompCustomer 
             };
+          }else{
+            return { 
+              ...entry, 
+              pretip: tip 
+            };
           }
-      
-          return { 
-            ...entry, 
-            pretip: tip 
-          };
         }
         return entry;
       });
