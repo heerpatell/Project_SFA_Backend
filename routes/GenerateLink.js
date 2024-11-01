@@ -673,54 +673,41 @@ router.route('/addworkertip').post(async (req, res) => {
         return res.status(500).send({ msg: "Round entries are not in expected format" });
       }
 
-      if(condition == 'Post-Tip'){
-        const updatedEntries = roundEntries.map(entry => {
-          if (entry.customer === pnumber) {
-            const effortToTokens = {
-              0.1: 0,
-              0.2: 5,
-              0.3: 10,
-              0.4: 20,
-              0.5: 30,
-              0.6: 40,
-              0.7: 50,
-              0.8: 60,
-              0.9: 75,
-              1.0: 90,
-            };
-  
-            const effortTokens = Number(effortToTokens[entry.effort]) || 0;
-            const effort = Number(entry.effort) || 0; // Ensure effort is a number
-            const workerTip = Number(tip) || 0; // Ensure tip is a number
-            const totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
-            const totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
-        
-            if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
-              return res.status(500).send({ msg: "Invalid calculation for total compensation" });
-            }
-  
-            return { 
-              ...entry, 
-              pretip: tip, 
-              totalCompWorker, 
-              totalCompCustomer 
-            };
-          }
-          return entry;
-        });
-      }
-      if(condition == 'Pre-Tip'){
-        const updatedEntries = roundEntries.map(entry => {
-          if (entry.customer === pnumber) {  
-            return { 
-              ...entry, 
-              pretip: tip
-            };
-          }
-          return entry;
-        });
-      }
+      const updatedEntries = roundEntries.map(entry => {
+        if (entry.customer === pnumber) {
+          const effortToTokens = {
+            0.1: 0,
+            0.2: 5,
+            0.3: 10,
+            0.4: 20,
+            0.5: 30,
+            0.6: 40,
+            0.7: 50,
+            0.8: 60,
+            0.9: 75,
+            1.0: 90,
+          };
 
+          const effortTokens = Number(effortToTokens[entry.effort]) || 0;
+          const effort = Number(entry.effort) || 0; // Ensure effort is a number
+          const workerTip = Number(tip) || 0; // Ensure tip is a number
+          const totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
+          const totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
+      
+          if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
+            return res.status(500).send({ msg: "Invalid calculation for total compensation" });
+          }
+
+          return { 
+            ...entry, 
+            pretip: tip, 
+            totalCompWorker, 
+            totalCompCustomer 
+          };
+        }
+        return entry;
+      });
+      
       // Update the matches object
       matches.set(currentround, updatedEntries);
       // Save the updated match document
