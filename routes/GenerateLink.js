@@ -697,12 +697,13 @@ router.route('/addworkertip').post(async (req, res) => {
             updatedEntry.totalCompWorker = totalCompWorker;
             updatedEntry.totalCompCustomer = totalCompCustomer;
           }
-          console.log(666666, updatedEntry)
+          console.log(666666, updatedEntry.totalCompCustomer)
           return updatedEntry;
         }
         return entry;
       });
 
+      console.log(706, updatedEntries)
       // Update the matches object
       matches.set(currentround, updatedEntries);
 
