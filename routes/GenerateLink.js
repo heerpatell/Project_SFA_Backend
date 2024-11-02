@@ -680,7 +680,7 @@ router.route('/addworkertip').post(async (req, res) => {
           const updatedEntry = { ...entry, pretip: tip };
 
           console.log(682, condition)
-          if (condition != 'Pre-Tip') {
+          if (condition == undefined) {
             console.log(684, entry)
             const effortToTokens = {
               0.1: 0, 0.2: 5, 0.3: 10, 0.4: 20,
