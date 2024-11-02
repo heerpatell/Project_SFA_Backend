@@ -679,7 +679,9 @@ router.route('/addworkertip').post(async (req, res) => {
         if (entry.customer === pnumber) {
           const updatedEntry = { ...entry, pretip: tip };
 
+          console.log(682, condition)
           if (condition === 'Post-Tip') {
+            console.log(684, entry)
             const effortToTokens = {
               0.1: 0, 0.2: 5, 0.3: 10, 0.4: 20,
               0.5: 30, 0.6: 40, 0.7: 50, 0.8: 60,
@@ -695,6 +697,7 @@ router.route('/addworkertip').post(async (req, res) => {
             updatedEntry.totalCompWorker = totalCompWorker;
             updatedEntry.totalCompCustomer = totalCompCustomer;
           }
+          console.log(666666, updatedEntry)
           return updatedEntry;
         }
         return entry;
