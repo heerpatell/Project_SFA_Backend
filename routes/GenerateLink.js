@@ -645,12 +645,12 @@ router.route('/addworkertip').post(async (req, res) => {
   let { pnumber, tip, currentround, condition } = req.body;
 
   if (!token) {
-    return res.status(401).send({ msg: "access denied" });
+    return res.status(401).send({ msg: "Access denied" });
   }
 
   jwt.verify(token, "secretKey", async (err, decodedToken) => {
     if (err) {
-      return res.status(201).send({ msg: "access denied" });
+      return res.status(401).send({ msg: "Access denied" });
     }
 
     const link = decodedToken.link;
@@ -666,6 +666,7 @@ router.route('/addworkertip').post(async (req, res) => {
     currentround = currentround === 'Practice Round' ? 'practice_round' : currentround.toString();
     pnumber = Number(pnumber);
 
+    // Check if the current round exists in the matches
     if (matches.has(currentround)) {
       const roundEntries = matches.get(currentround);
 
@@ -673,49 +674,41 @@ router.route('/addworkertip').post(async (req, res) => {
         return res.status(500).send({ msg: "Round entries are not in expected format" });
       }
 
+      // Update round entries
       const updatedEntries = roundEntries.map(entry => {
         if (entry.customer === pnumber) {
-          // Update pretip for both conditions
           const updatedEntry = { ...entry, pretip: tip };
 
           if (condition === 'Post-Tip') {
             const effortToTokens = {
-              0.1: 0,
-              0.2: 5,
-              0.3: 10,
-              0.4: 20,
-              0.5: 30,
-              0.6: 40,
-              0.7: 50,
-              0.8: 60,
-              0.9: 75,
-              1.0: 90,
+              0.1: 0, 0.2: 5, 0.3: 10, 0.4: 20,
+              0.5: 30, 0.6: 40, 0.7: 50, 0.8: 60,
+              0.9: 75, 1.0: 90,
             };
 
             const effortTokens = Number(effortToTokens[entry.effort]) || 0;
-            const effort = Number(entry.effort) || 0; // Ensure effort is a number
-            const workerTip = Number(tip) || 0; // Ensure tip is a number
-            let totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
-            let totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
+            const effort = Number(entry.effort) || 0;
+            const workerTip = Number(tip) || 0;
+            const totalCompWorker = 160 + workerTip - effortTokens;
+            const totalCompCustomer = 60 + effort * 200 - workerTip;
 
-            // if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
-            //   return res.status(500).send({ msg: "Invalid calculation for total compensation" });
-            // }
-
-            // Add the total compensation values to the updated entry
             updatedEntry.totalCompWorker = totalCompWorker;
             updatedEntry.totalCompCustomer = totalCompCustomer;
           }
-
-          return updatedEntry; // Return the updated entry
+          return updatedEntry;
         }
-        return entry; // Return the original entry for non-matching customers
+        return entry;
       });
 
       // Update the matches object
       matches.set(currentround, updatedEntries);
-      // Save the updated match document
-      await match.save();
+
+      // Update the match document in the database
+      await Match.findOneAndUpdate(
+        { sessionId },
+        { matches },
+        { new: true }
+      );
 
       return res.status(201).send({ msg: "Tip updated successfully" });
     } else {
@@ -723,7 +716,6 @@ router.route('/addworkertip').post(async (req, res) => {
     }
   });
 });
-
 
 router.route('/geteffortlevel').post(async(req,res)=>{
   const token = req.body.token;
