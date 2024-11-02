@@ -695,12 +695,12 @@ router.route('/addworkertip').post(async (req, res) => {
             const effortTokens = Number(effortToTokens[entry.effort]) || 0;
             const effort = Number(entry.effort) || 0; // Ensure effort is a number
             const workerTip = Number(tip) || 0; // Ensure tip is a number
-            const totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
-            const totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
+            let totalCompWorker = 160 + Number(workerTip) - Number(effortTokens); // Calculate total compensation for worker
+            let totalCompCustomer = 60 + Number(effort * 200) - Number(workerTip); // Calculate total compensation for customer
 
-            if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
-              return res.status(500).send({ msg: "Invalid calculation for total compensation" });
-            }
+            // if (isNaN(totalCompCustomer) || isNaN(totalCompWorker)) {
+            //   return res.status(500).send({ msg: "Invalid calculation for total compensation" });
+            // }
 
             // Add the total compensation values to the updated entry
             updatedEntry.totalCompWorker = totalCompWorker;
