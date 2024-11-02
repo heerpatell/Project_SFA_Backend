@@ -679,7 +679,6 @@ router.route('/addworkertip').post(async (req, res) => {
         if (entry.customer === pnumber) {
           const updatedEntry = { ...entry, pretip: tip };
 
-          console.log(682, condition)
           if (condition == undefined) {
             console.log(684, entry)
             const effortToTokens = {
@@ -697,13 +696,11 @@ router.route('/addworkertip').post(async (req, res) => {
             updatedEntry.totalCompWorker = totalCompWorker;
             updatedEntry.totalCompCustomer = totalCompCustomer;
           }
-          console.log(666666, updatedEntry.totalCompCustomer)
           return updatedEntry;
         }
         return entry;
       });
-
-      console.log(706, updatedEntries)
+      
       // Update the matches object
       matches.set(currentround, updatedEntries);
 
