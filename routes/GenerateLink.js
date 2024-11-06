@@ -1417,17 +1417,22 @@ router.post('/postanswersfrom27', async(req,res)=>{
     return res.status(401).send({ msg: "Access denied" });
   }
 
+
   jwt.verify(token, "secretKey", async (err, decodedToken) => {
     if (err) {
       return res.status(403).send({ msg: "Access denied" });
     }
 
-    try{
+    try {
       const { gender, age, workExperience, foodIndustryExperience } = req.body;  
-      const pnumber = parseInt(req.body.pnumber, 10)
-  
+      const pnumber = parseInt(req.body.pnumber, 10);
+      
+      const link = decodedToken.link;
+      const sessionObj = await Sessions.findOne({ link });
+      const sessionId = sessionObj._id.toHexString();
+    
       const updateResult = await Participants.updateOne(
-        { 'participants.participant_number': pnumber },  // Find the participant by participant_number
+        { sessionId },  
         {
           $set: {
             'participants.$[elem].gender': gender,
@@ -1437,27 +1442,21 @@ router.post('/postanswersfrom27', async(req,res)=>{
           }
         },
         {
-          arrayFilters: [{ 'elem.participant_number': pnumber }], // Specify the array filter
+          arrayFilters: [{ 'elem.participant_number': pnumber }],
           new: true
         }
       );
-  
+    
       res.status(200).json({
         msg: 'Participant updated successfully',
         updateResult
       });
-      // if (updateResult.nModified > 0) {
-      //   res.status(200).json({
-      //     msg: 'Participant updated successfully',
-      //     updateResult
-      //   });
-      // } else {
-      //   res.status(200).json({ msg: 'Participant not found or no updates made' });
-      // }
-  
-    }catch(e){
-      console.log('error: ', e)
+    
+    } catch (e) {
+      console.log('error: ', e);
+      res.status(500).json({ msg: 'An error occurred', error: e.message });
     }
+    
   });
 
 })
