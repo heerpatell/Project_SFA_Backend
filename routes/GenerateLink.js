@@ -1537,7 +1537,7 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
       { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
-      { header: 'Cumulative Compensation Customer', key: 'cumulativeCustomer', width: 35 },
+      // { header: 'Cumulative Compensation Customer', key: 'cumulativeCustomer', width: 35 },
     ];
 
     const effortToTokens = {
@@ -1634,14 +1634,14 @@ router.post('/exporttoexcel', async (req, res) => {
 
         // Initialize cumulative totals
         let cumulativeWorker = 0;
-        let cumulativeCustomer = 0;
+        // let cumulativeCustomer = 0;
 
         rounds.forEach((roundMatch, roundIndex) => {
           if (roundMatch && Array.isArray(roundMatch)) {
             roundMatch.forEach(entry => {
               console.log(`Processing Round ${roundIndex + 1}:`, roundMatch);
               cumulativeWorker += entry.totalCompWorker || 0;
-              cumulativeCustomer += entry.totalCompCustomer || 0;
+              // cumulativeCustomer += entry.totalCompCustomer || 0;
 
               const cost = effortToTokens[entry.effort] || '';
 
@@ -1656,7 +1656,7 @@ router.post('/exporttoexcel', async (req, res) => {
                 effort: entry.effort || '',
                 cost: entry.effort === 0.1 ? 0 : cost,
                 cumulativeWorker: cumulativeWorker,
-                cumulativeCustomer: cumulativeCustomer,
+                // cumulativeCustomer: cumulativeCustomer,
               });
             });
           }
