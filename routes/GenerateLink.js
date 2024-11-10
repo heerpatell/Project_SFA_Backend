@@ -1656,7 +1656,7 @@ router.post('/exporttoexcel', async (req, res) => {
                 totalCompWorker: entry.totalCompWorker || '',
                 effort: entry.effort || '',
                 cost: entry.effort === 0.1 ? 0 : cost,
-                cumulativeWorker: isPracticeRound ? cumulativeWorker : cumulativeWorker += entry.totalCompWorker || 0,
+                cumulativeWorker: isPracticeRound ? cumulativeWorker : 0,
                 // cumulativeCustomer: cumulativeCustomer,
               });
             });
