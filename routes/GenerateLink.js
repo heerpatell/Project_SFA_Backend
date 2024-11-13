@@ -1387,8 +1387,6 @@ router.post('/saveresponsesforscreen24', async (req, res) => {
       if (!existingResponse) {
         return res.status(404).send({ msg: "Response not found" });
       }
-      existingResponse.controllability1 = Controllability1;
-      existingResponse.controllability2 = Controllability2;
       existingResponse.TipReason_Effort = TipReason_Effort;
       existingResponse.TipReason_SocialImage = TipReason_SocialImage;
       existingResponse.TipReason_SocialNorm = TipReason_SocialNorm;
