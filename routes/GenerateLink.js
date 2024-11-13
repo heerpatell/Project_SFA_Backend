@@ -1364,43 +1364,6 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
   });
 });
 
-router.post('/saveresponsesforscreen24', async (req, res) => {
-  const token = req.body.token;
-  const { pnumber, condition, TipReason_Effort, TipReason_SocialImage, TipReason_SocialNorm } = req.body;
-
-  if (!token) {
-    return res.status(401).send({ msg: "Access denied" });
-  }
-
-  jwt.verify(token, "secretKey", async (err, decodedToken) => {
-    if (err) {
-      return res.status(403).send({ msg: "Access denied" });
-    }
-
-    try {
-      const link = decodedToken.link;
-      const sessionObj = await Sessions.findOne({ link });
-      const sessionId = sessionObj._id.toHexString();
-
-      const existingResponse = await Response.findOne({ pnumber, sessionId });
-
-      if (!existingResponse) {
-        return res.status(404).send({ msg: "Response not found" });
-      }
-      existingResponse.TipReason_Effort = TipReason_Effort;
-      existingResponse.TipReason_SocialImage = TipReason_SocialImage;
-      existingResponse.TipReason_SocialNorm = TipReason_SocialNorm;
-
-      await existingResponse.save();
-
-      res.status(200).send({ msg: 'Response updated successfully' });
-    } catch (error) {
-      console.error("Error saving response:", error);
-      res.status(500).send({ msg: "Internal server error" });
-    }
-  });
-});
-
 router.post('/postresponse', async (req, res) => {
   const token = req.body.token;
   const { pnumber, condition, response } = req.body;
