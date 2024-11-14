@@ -1555,6 +1555,7 @@ router.post('/exporttoexcel', async (req, res) => {
     const worksheet1 = workbook.addWorksheet('Session Data');
     const worksheet2 = workbook.addWorksheet('Round Details');
 
+    // Define columns for the Session Data sheet
     worksheet1.columns = [
       { header: 'Session ID', key: '_id', width: 30 },
       { header: 'No of Participants', key: 'no_of_participants', width: 20 },
@@ -1592,6 +1593,7 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
       { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
+      // { header: 'Cumulative Compensation Customer', key: 'cumulativeCustomer', width: 35 },
     ];
 
     const effortToTokens = {
@@ -1607,21 +1609,27 @@ router.post('/exporttoexcel', async (req, res) => {
       1.0: 90,
     };
 
+    // Fetch all session documents from MongoDB
     const sessions = await Sessions.find({});
+
     if (sessions.length === 0) {
       return res.status(404).send({ msg: "No sessions found" });
     }
 
     for (const session of sessions) {
+      // Fetch participants for this session ID
       const participants = await Participants.find({ sessionId: session._id });
 
-      const participantDataMap = {};
+      const participantDataMap = {}; // To accumulate participant data
+
       if (participants.length > 0) {
         for (const participant of participants) {
           for (const p of participant.participants) {
+            // Fetch responses for this session and participant number
             const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
 
             if (!participantDataMap[p.participant_number]) {
+              // Initialize the object for this participant number
               participantDataMap[p.participant_number] = {
                 _id: session._id.toString(),
                 no_of_participants: session.no_of_participants,
@@ -1649,6 +1657,7 @@ router.post('/exporttoexcel', async (req, res) => {
               };
             }
 
+            // Add responses to the participant data
             if (responses.length > 0) {
               responses.forEach(response => {
                 participantDataMap[p.participant_number].EffortSensitivity_Manager = response.EffortSensitivity_Manager || participantDataMap[p.participant_number].EffortSensitivity_Manager;
@@ -1669,53 +1678,49 @@ router.post('/exporttoexcel', async (req, res) => {
         }
       }
 
+      // Add accumulated participant data to the worksheet
       for (const participantKey in participantDataMap) {
         worksheet1.addRow(participantDataMap[participantKey]);
       }
 
       let matches = await Match.find({ sessionId: session._id });
       if (matches.length > 0) {
-        matches = matches[0];
+        matches = matches[0]; // Assuming we want the first match document
         const rounds = matches.matches;
 
+        // Initialize cumulative totals
         let cumulativeWorker = 0;
+        // let cumulativeCustomer = 0;
 
-        const sortedRounds = rounds.sort((a, b) => {
-          if (a.roundnumber === 'practice_round') return -1;
-          if (b.roundnumber === 'practice_round') return 1;
-          return a.roundnumber - b.roundnumber;
-        });
+        rounds.forEach((roundMatch, roundIndex) => {
+          if (roundMatch && Array.isArray(roundMatch)) {
+            roundMatch.forEach(entry => {
+              // console.log(Processing Round ${roundIndex + 1}:, roundMatch);
+              cumulativeWorker += entry.totalCompWorker || 0;
+              // cumulativeCustomer += entry.totalCompCustomer || 0;
 
-        sortedRounds.forEach((entry, index) => {
-          const isPracticeRound = entry.roundnumber === 'practice_round';
-          const totalCompWorker = entry.totalCompWorker || 0;
+              const cost = effortToTokens[entry.effort] || '';
 
-          if (isPracticeRound) {
-            cumulativeWorker = 0;
-          } else if (index === 1) {
-            cumulativeWorker = totalCompWorker;
-          } else {
-            cumulativeWorker += totalCompWorker;
+              worksheet2.addRow({
+                sessionId: session._id.toString(),
+                roundnumber: roundIndex,
+                worker: entry.worker || '',
+                customer: entry.customer || '',
+                pretip: entry.pretip || '',
+                totalCompCustomer: entry.totalCompCustomer || '',
+                totalCompWorker: entry.totalCompWorker || '',
+                effort: entry.effort || '',
+                cost: entry.effort === 0.1 ? 0 : cost,
+                cumulativeWorker: cumulativeWorker,
+                // cumulativeCustomer: cumulativeCustomer,
+              });
+            });
           }
-
-          const cost = effortToTokens[entry.effort] || '';
-
-          worksheet2.addRow({
-            sessionId: session._id.toString(),
-            roundnumber: entry.roundnumber,
-            worker: entry.worker || '',
-            customer: entry.customer || '',
-            pretip: entry.pretip || '',
-            totalCompCustomer: entry.totalCompCustomer || '',
-            totalCompWorker: entry.totalCompWorker || '',
-            effort: entry.effort || '',
-            cost: entry.effort === 0.1 ? 0 : cost,
-            cumulativeWorker: cumulativeWorker,
-          });
         });
       }
     }
 
+    // Send the workbook as a response
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
     await workbook.xlsx.write(res);
