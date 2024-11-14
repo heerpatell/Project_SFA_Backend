@@ -1346,21 +1346,15 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
       let response = await Response.findOne({ pnumber, sessionId });
 
       if (!response) {
-        // Create a new response if it doesn't exist
         response = new Response({
           pnumber,
           sessionId,
           condition,
-          controllability1: Controllability1,
-          controllability2: Controllability2,
           TipReason_Effort,
           TipReason_SocialImage,
           TipReason_SocialNorm
         });
       } else {
-        // Update existing response
-        response.controllability1 = Controllability1;
-        response.controllability2 = Controllability2;
         response.TipReason_Effort = TipReason_Effort;
         response.TipReason_SocialImage = TipReason_SocialImage;
         response.TipReason_SocialNorm = TipReason_SocialNorm;
