@@ -1549,15 +1549,52 @@ router.post('/postamount',async(req,res)=>{
   });
 })
 
+
 router.post('/exporttoexcel', async (req, res) => {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet1 = workbook.addWorksheet('Session Data');
     const worksheet2 = workbook.addWorksheet('Round Details');
     
-    // Define columns for the worksheets
-    worksheet1.columns = [ /* Define columns here */ ];
-    worksheet2.columns = [ /* Define columns here */ ];
+    worksheet1.columns = [
+      { header: 'Session ID', key: '_id', width: 30 },
+      { header: 'No of Participants', key: 'no_of_participants', width: 20 },
+      { header: 'No of Rounds', key: 'no_of_rounds', width: 20 },
+      { header: 'Condition', key: 'condition', width: 30 },
+      { header: 'Link', key: 'link', width: 30 },
+      { header: 'Participant Number', key: 'participant_number', width: 20 },
+      { header: 'Assigned Category', key: 'assigned_category', width: 30 },
+      { header: 'Gender', key: 'gender', width: 15 },
+      { header: 'Age', key: 'age', width: 10 },
+      { header: 'Work Experience', key: 'workexperience', width: 20 },
+      { header: 'Food Industry Experience', key: 'foodindustry', width: 25 },
+      { header: 'EffortSensitivity_Manager', key: 'EffortSensitivity_Manager', width: 30 },
+      { header: 'EffortSensitivity_Customer', key: 'EffortSensitivity_Customer', width: 30 },
+      { header: 'Observability_Manager', key: 'Observability_Manager', width: 30 },
+      { header: 'Observability_Customer', key: 'Observability_Customer', width: 30 },
+      { header: 'MentalAccount', key: 'MentalAccount', width: 30 },
+      { header: 'Controllability1', key: 'controllability1', width: 20 },
+      { header: 'Controllability2', key: 'controllability2', width: 20 },
+      { header: 'Response', key: 'response', width: 50 },
+      { header: 'Amount', key: 'amount', width: 25 },
+      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 20 },
+      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 20 },
+      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 20 },
+    ];
+
+    worksheet2.columns = [
+      { header: 'Session ID', key: 'sessionId', width: 30 },
+      { header: 'Round Number', key: 'roundnumber', width: 20 },
+      { header: 'Worker', key: 'worker', width: 20 },
+      { header: 'Customer', key: 'customer', width: 20 },
+      { header: 'Effort', key: 'effort', width: 20 },
+      { header: 'Cost Of Effort', key: 'cost', width: 20 },
+      { header: 'Tip', key: 'pretip', width: 20 },
+      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
+      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
+      { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
+      // { header: 'Cumulative Compensation Customer', key: 'cumulativeCustomer', width: 35 },
+    ];
 
     const effortToTokens = {
       0.1: 0,
@@ -1699,6 +1736,5 @@ router.post('/exporttoexcel', async (req, res) => {
     res.status(500).send({ msg: "Error exporting data", error });
   }
 });
-
 
 module.exports = router;
