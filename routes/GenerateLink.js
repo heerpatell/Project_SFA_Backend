@@ -1343,7 +1343,7 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
       const sessionId = sessionObj._id.toHexString();
 
       let response = await Response.findOne({ pnumber, sessionId });
-      console.log(1331, response)
+      // console.log(1331, response)
       if (!response) {
         response = new Response({
           pnumber,
