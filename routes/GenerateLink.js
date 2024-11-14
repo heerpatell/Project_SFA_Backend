@@ -1555,46 +1555,9 @@ router.post('/exporttoexcel', async (req, res) => {
     const worksheet1 = workbook.addWorksheet('Session Data');
     const worksheet2 = workbook.addWorksheet('Round Details');
     
-    // Define columns for the Session Data sheet
-    worksheet1.columns = [
-      { header: 'Session ID', key: '_id', width: 30 },
-      { header: 'No of Participants', key: 'no_of_participants', width: 20 },
-      { header: 'No of Rounds', key: 'no_of_rounds', width: 20 },
-      { header: 'Condition', key: 'condition', width: 30 },
-      { header: 'Link', key: 'link', width: 30 },
-      { header: 'Participant Number', key: 'participant_number', width: 20 },
-      { header: 'Assigned Category', key: 'assigned_category', width: 30 },
-      { header: 'Gender', key: 'gender', width: 15 },
-      { header: 'Age', key: 'age', width: 10 },
-      { header: 'Work Experience', key: 'workexperience', width: 20 },
-      { header: 'Food Industry Experience', key: 'foodindustry', width: 25 },
-      { header: 'EffortSensitivity_Manager', key: 'EffortSensitivity_Manager', width: 30 },
-      { header: 'EffortSensitivity_Customer', key: 'EffortSensitivity_Customer', width: 30 },
-      { header: 'Observability_Manager', key: 'Observability_Manager', width: 30 },
-      { header: 'Observability_Customer', key: 'Observability_Customer', width: 30 },
-      { header: 'MentalAccount', key: 'MentalAccount', width: 30 },
-      { header: 'Controllability1', key: 'controllability1', width: 20 },
-      { header: 'Controllability2', key: 'controllability2', width: 20 },
-      { header: 'Response', key: 'response', width: 50 },
-      { header: 'Amount', key: 'amount', width: 25 },
-      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 20 },
-      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 20 },
-      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 20 },
-    ];
-
-    worksheet2.columns = [
-      { header: 'Session ID', key: 'sessionId', width: 30 },
-      { header: 'Round Number', key: 'roundnumber', width: 20 },
-      { header: 'Worker', key: 'worker', width: 20 },
-      { header: 'Customer', key: 'customer', width: 20 },
-      { header: 'Effort', key: 'effort', width: 20 },
-      { header: 'Cost Of Effort', key: 'cost', width: 20 },
-      { header: 'Tip', key: 'pretip', width: 20 },
-      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
-      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
-      { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
-      // { header: 'Cumulative Compensation Customer', key: 'cumulativeCustomer', width: 35 },
-    ];
+    // Define columns for the worksheets
+    worksheet1.columns = [ /* Define columns here */ ];
+    worksheet2.columns = [ /* Define columns here */ ];
 
     const effortToTokens = {
       0.1: 0,
@@ -1609,27 +1572,22 @@ router.post('/exporttoexcel', async (req, res) => {
       1.0: 90,
     };
 
-    // Fetch all session documents from MongoDB
+    // Fetch all session documents
     const sessions = await Sessions.find({});
-
     if (sessions.length === 0) {
       return res.status(404).send({ msg: "No sessions found" });
     }
 
     for (const session of sessions) {
-      // Fetch participants for this session ID
+      // Fetch participants for each session
       const participants = await Participants.find({ sessionId: session._id });
-
-      const participantDataMap = {}; // To accumulate participant data
+      const participantDataMap = {}; 
 
       if (participants.length > 0) {
         for (const participant of participants) {
           for (const p of participant.participants) {
-            // Fetch responses for this session and participant number
             const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
-
             if (!participantDataMap[p.participant_number]) {
-              // Initialize the object for this participant number
               participantDataMap[p.participant_number] = {
                 _id: session._id.toString(),
                 no_of_participants: session.no_of_participants,
@@ -1657,81 +1615,76 @@ router.post('/exporttoexcel', async (req, res) => {
               };
             }
 
-            // Add responses to the participant data
-            if (responses.length > 0) {
-              responses.forEach(response => {
-                participantDataMap[p.participant_number].EffortSensitivity_Manager = response.EffortSensitivity_Manager || participantDataMap[p.participant_number].EffortSensitivity_Manager;
-                participantDataMap[p.participant_number].EffortSensitivity_Customer = response.EffortSensitivity_Customer || participantDataMap[p.participant_number].EffortSensitivity_Customer;
-                participantDataMap[p.participant_number].Observability_Manager = response.Observability_Manager || participantDataMap[p.participant_number].Observability_Manager;
-                participantDataMap[p.participant_number].Observability_Customer = response.Observability_Customer || participantDataMap[p.participant_number].Observability_Customer;
-                participantDataMap[p.participant_number].MentalAccount = response.MentalAccount || participantDataMap[p.participant_number].MentalAccount;
-                participantDataMap[p.participant_number].controllability1 = response.controllability1 || participantDataMap[p.participant_number].controllability1;
-                participantDataMap[p.participant_number].controllability2 = response.controllability2 || participantDataMap[p.participant_number].controllability2;
-                participantDataMap[p.participant_number].response = response.response || participantDataMap[p.participant_number].response;
-                participantDataMap[p.participant_number].amount = response.amount || participantDataMap[p.participant_number].amount;
-                participantDataMap[p.participant_number].TipReason_Effort = response.TipReason_Effort || participantDataMap[p.participant_number].TipReason_Effort;
-                participantDataMap[p.participant_number].TipReason_SocialImage = response.TipReason_SocialImage || participantDataMap[p.participant_number].TipReason_SocialImage;
-                participantDataMap[p.participant_number].TipReason_SocialNorm = response.TipReason_SocialNorm || participantDataMap[p.participant_number].TipReason_SocialNorm;
-              });
-            }
+            // Accumulate responses for participant
+            responses.forEach(response => {
+              participantDataMap[p.participant_number].EffortSensitivity_Manager = response.EffortSensitivity_Manager || participantDataMap[p.participant_number].EffortSensitivity_Manager;
+              participantDataMap[p.participant_number].EffortSensitivity_Customer = response.EffortSensitivity_Customer || participantDataMap[p.participant_number].EffortSensitivity_Customer;
+              participantDataMap[p.participant_number].Observability_Manager = response.Observability_Manager || participantDataMap[p.participant_number].Observability_Manager;
+              participantDataMap[p.participant_number].Observability_Customer = response.Observability_Customer || participantDataMap[p.participant_number].Observability_Customer;
+              participantDataMap[p.participant_number].MentalAccount = response.MentalAccount || participantDataMap[p.participant_number].MentalAccount;
+              participantDataMap[p.participant_number].controllability1 = response.controllability1 || participantDataMap[p.participant_number].controllability1;
+              participantDataMap[p.participant_number].controllability2 = response.controllability2 || participantDataMap[p.participant_number].controllability2;
+              participantDataMap[p.participant_number].response = response.response || participantDataMap[p.participant_number].response;
+              participantDataMap[p.participant_number].amount = response.amount || participantDataMap[p.participant_number].amount;
+              participantDataMap[p.participant_number].TipReason_Effort = response.TipReason_Effort || participantDataMap[p.participant_number].TipReason_Effort;
+              participantDataMap[p.participant_number].TipReason_SocialImage = response.TipReason_SocialImage || participantDataMap[p.participant_number].TipReason_SocialImage;
+              participantDataMap[p.participant_number].TipReason_SocialNorm = response.TipReason_SocialNorm || participantDataMap[p.participant_number].TipReason_SocialNorm;
+            });
           }
         }
       }
 
-      // Add accumulated participant data to the worksheet
+      // Add participant data to the worksheet
       for (const participantKey in participantDataMap) {
         worksheet1.addRow(participantDataMap[participantKey]);
       }
 
-      let matches = await Match.find({ sessionId: session._id });
-      if (matches.length > 0) {
-        matches = matches[0]; // Assuming we want the first match document
+      // Fetch matches for each session
+      let matches = await Match.findOne({ sessionId: session._id });
+
+      if (matches && Array.isArray(matches.matches)) {
         const rounds = matches.matches;
-      
-        // Check if rounds is an array before sorting
-        if (Array.isArray(rounds)) {
-          // Initialize cumulative totals
-          let cumulativeWorker = 0;
-      
-          // Sort rounds with practice_round first, then rounds 1-10 in ascending order
-          const sortedRounds = rounds.sort((a, b) => {
-            if (a.roundnumber === 'practice_round') return -1;
-            if (b.roundnumber === 'practice_round') return 1;
-            return a.roundnumber - b.roundnumber;
+
+        // Initialize cumulative totals
+        let cumulativeWorker = 0;
+
+        // Sort rounds with practice_round first, then rounds 1-10 in ascending order
+        const sortedRounds = rounds.sort((a, b) => {
+          if (a.roundnumber === 'practice_round') return -1;
+          if (b.roundnumber === 'practice_round') return 1;
+          return a.roundnumber - b.roundnumber;
+        });
+
+        sortedRounds.forEach((entry, index) => {
+          const isPracticeRound = entry.roundnumber === 'practice_round';
+          const totalCompWorker = entry.totalCompWorker || 0;
+
+          if (isPracticeRound) {
+            cumulativeWorker = 0; // Set cumulative for practice round to 0
+          } else if (index === 1 || (!isPracticeRound && index === 0)) {
+            cumulativeWorker = totalCompWorker; // Set cumulative for round 1 to total compensation
+          } else {
+            cumulativeWorker += totalCompWorker; // Accumulate for other rounds
+          }
+
+          const cost = effortToTokens[entry.effort] || '';
+
+          worksheet2.addRow({
+            sessionId: session._id.toString(),
+            roundnumber: entry.roundnumber,
+            worker: entry.worker || '',
+            customer: entry.customer || '',
+            pretip: entry.pretip || '',
+            totalCompCustomer: entry.totalCompCustomer || '',
+            totalCompWorker: entry.totalCompWorker || '',
+            effort: entry.effort || '',
+            cost: entry.effort === 0.1 ? 0 : cost,
+            cumulativeWorker: cumulativeWorker,
           });
-      
-          sortedRounds.forEach((entry, index) => {
-            const isPracticeRound = entry.roundnumber === 'practice_round';
-            const totalCompWorker = entry.totalCompWorker || 0;
-      
-            if (isPracticeRound) {
-              cumulativeWorker = 0; // Set cumulative for practice round to 0
-            } else if (index === 1 || isPracticeRound === false && index === 0) {
-              cumulativeWorker = totalCompWorker; // Set cumulative for round 1 to total compensation
-            } else {
-              cumulativeWorker += totalCompWorker; // Accumulate for other rounds
-            }
-      
-            const cost = effortToTokens[entry.effort] || '';
-      
-            worksheet2.addRow({
-              sessionId: session._id.toString(),
-              roundnumber: entry.roundnumber,
-              worker: entry.worker || '',
-              customer: entry.customer || '',
-              pretip: entry.pretip || '',
-              totalCompCustomer: entry.totalCompCustomer || '',
-              totalCompWorker: entry.totalCompWorker || '',
-              effort: entry.effort || '',
-              cost: entry.effort === 0.1 ? 0 : cost,
-              cumulativeWorker: cumulativeWorker,
-            });
-          });
-        } else {
-          console.error("Error: 'rounds' is not an array. Received:", rounds);
-        }
+        });
+      } else {
+        console.error("Error: 'rounds' is not an array or is missing. Received:", matches?.matches);
       }
-      
     }
 
     // Send the workbook as a response
@@ -1746,5 +1699,6 @@ router.post('/exporttoexcel', async (req, res) => {
     res.status(500).send({ msg: "Error exporting data", error });
   }
 });
+
 
 module.exports = router;
