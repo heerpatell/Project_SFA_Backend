@@ -1549,14 +1549,12 @@ router.post('/postamount',async(req,res)=>{
   });
 })
 
-
 router.post('/exporttoexcel', async (req, res) => {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet1 = workbook.addWorksheet('Session Data');
     const worksheet2 = workbook.addWorksheet('Round Details');
 
-    // Define columns for the Session Data sheet
     worksheet1.columns = [
       { header: 'Session ID', key: '_id', width: 30 },
       { header: 'No of Participants', key: 'no_of_participants', width: 20 },
@@ -1594,22 +1592,30 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
       { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
-      { header: 'Cumulative Compensation Customer', key: 'cumulativeCustomer', width: 35 },
     ];
 
     const effortToTokens = {
-      0.1: 0, 0.2: 5, 0.3: 10, 0.4: 20, 0.5: 30, 0.6: 40, 0.7: 50, 0.8: 60, 0.9: 75, 1.0: 90,
+      0.1: 0,
+      0.2: 5,
+      0.3: 10,
+      0.4: 20,
+      0.5: 30,
+      0.6: 40,
+      0.7: 50,
+      0.8: 60,
+      0.9: 75,
+      1.0: 90,
     };
 
     const sessions = await Sessions.find({});
-    if (!sessions || sessions.length === 0) {
+    if (sessions.length === 0) {
       return res.status(404).send({ msg: "No sessions found" });
     }
 
     for (const session of sessions) {
       const participants = await Participants.find({ sessionId: session._id });
-      const participantDataMap = {};
 
+      const participantDataMap = {};
       if (participants.length > 0) {
         for (const participant of participants) {
           for (const p of participant.participants) {
@@ -1673,30 +1679,39 @@ router.post('/exporttoexcel', async (req, res) => {
         const rounds = matches.matches;
 
         let cumulativeWorker = 0;
-        let cumulativeCustomer = 0;
 
-        rounds.forEach((roundMatch, roundIndex) => {
-          if (roundMatch && Array.isArray(roundMatch)) {
-            roundMatch.forEach(entry => {
-              cumulativeWorker += entry.totalCompWorker || 0;
-              cumulativeCustomer += entry.totalCompCustomer || 0;
-              const cost = effortToTokens[entry.effort] || '';
+        const sortedRounds = rounds.sort((a, b) => {
+          if (a.roundnumber === 'practice_round') return -1;
+          if (b.roundnumber === 'practice_round') return 1;
+          return a.roundnumber - b.roundnumber;
+        });
 
-              worksheet2.addRow({
-                sessionId: session._id.toString(),
-                roundnumber: roundIndex,
-                worker: entry.worker || '',
-                customer: entry.customer || '',
-                pretip: entry.pretip || '',
-                totalCompCustomer: entry.totalCompCustomer || '',
-                totalCompWorker: entry.totalCompWorker || '',
-                effort: entry.effort || '',
-                cost: entry.effort === 0.1 ? 0 : cost,
-                cumulativeWorker,
-                cumulativeCustomer,
-              });
-            });
+        sortedRounds.forEach((entry, index) => {
+          const isPracticeRound = entry.roundnumber === 'practice_round';
+          const totalCompWorker = entry.totalCompWorker || 0;
+
+          if (isPracticeRound) {
+            cumulativeWorker = 0;
+          } else if (index === 1) {
+            cumulativeWorker = totalCompWorker;
+          } else {
+            cumulativeWorker += totalCompWorker;
           }
+
+          const cost = effortToTokens[entry.effort] || '';
+
+          worksheet2.addRow({
+            sessionId: session._id.toString(),
+            roundnumber: entry.roundnumber,
+            worker: entry.worker || '',
+            customer: entry.customer || '',
+            pretip: entry.pretip || '',
+            totalCompCustomer: entry.totalCompCustomer || '',
+            totalCompWorker: entry.totalCompWorker || '',
+            effort: entry.effort || '',
+            cost: entry.effort === 0.1 ? 0 : cost,
+            cumulativeWorker: cumulativeWorker,
+          });
         });
       }
     }
@@ -1711,7 +1726,5 @@ router.post('/exporttoexcel', async (req, res) => {
     res.status(500).send({ msg: "Error exporting data", error });
   }
 });
-
-
 
 module.exports = router;
