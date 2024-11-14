@@ -1554,7 +1554,7 @@ router.post('/exporttoexcel', async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet1 = workbook.addWorksheet('Session Data');
     const worksheet2 = workbook.addWorksheet('Round Details');
-
+    
     // Define columns for the Session Data sheet
     worksheet1.columns = [
       { header: 'Session ID', key: '_id', width: 30 },
@@ -1723,8 +1723,9 @@ router.post('/exporttoexcel', async (req, res) => {
     // Send the workbook as a response
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
-    await workbook.xlsx.write(res);
-    res.end();
+    await workbook.xlsx.write(res).then(() => {
+      res.end();
+    });
 
   } catch (error) {
     console.error('Error exporting to Excel:', error);
