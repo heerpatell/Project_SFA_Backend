@@ -1598,39 +1598,24 @@ router.post('/exporttoexcel', async (req, res) => {
     ];
 
     const effortToTokens = {
-      0.1: 0,
-      0.2: 5,
-      0.3: 10,
-      0.4: 20,
-      0.5: 30,
-      0.6: 40,
-      0.7: 50,
-      0.8: 60,
-      0.9: 75,
-      1.0: 90,
+      0.1: 0, 0.2: 5, 0.3: 10, 0.4: 20, 0.5: 30, 0.6: 40, 0.7: 50, 0.8: 60, 0.9: 75, 1.0: 90,
     };
 
-    // Fetch all session documents from MongoDB
     const sessions = await Sessions.find({});
-
-    if (sessions.length === 0) {
+    if (!sessions || sessions.length === 0) {
       return res.status(404).send({ msg: "No sessions found" });
     }
 
     for (const session of sessions) {
-      // Fetch participants for this session ID
       const participants = await Participants.find({ sessionId: session._id });
-
-      const participantDataMap = {}; // To accumulate participant data
+      const participantDataMap = {};
 
       if (participants.length > 0) {
         for (const participant of participants) {
           for (const p of participant.participants) {
-            // Fetch responses for this session and participant number
             const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
 
             if (!participantDataMap[p.participant_number]) {
-              // Initialize the object for this participant number
               participantDataMap[p.participant_number] = {
                 _id: session._id.toString(),
                 no_of_participants: session.no_of_participants,
@@ -1658,7 +1643,6 @@ router.post('/exporttoexcel', async (req, res) => {
               };
             }
 
-            // Add responses to the participant data
             if (responses.length > 0) {
               responses.forEach(response => {
                 participantDataMap[p.participant_number].EffortSensitivity_Manager = response.EffortSensitivity_Manager || participantDataMap[p.participant_number].EffortSensitivity_Manager;
@@ -1679,27 +1663,23 @@ router.post('/exporttoexcel', async (req, res) => {
         }
       }
 
-      // Add accumulated participant data to the worksheet
       for (const participantKey in participantDataMap) {
         worksheet1.addRow(participantDataMap[participantKey]);
       }
 
       let matches = await Match.find({ sessionId: session._id });
       if (matches.length > 0) {
-        matches = matches[0]; // Assuming we want the first match document
+        matches = matches[0];
         const rounds = matches.matches;
 
-        // Initialize cumulative totals
         let cumulativeWorker = 0;
         let cumulativeCustomer = 0;
 
         rounds.forEach((roundMatch, roundIndex) => {
           if (roundMatch && Array.isArray(roundMatch)) {
             roundMatch.forEach(entry => {
-              console.log(`Processing Round ${roundIndex + 1}:`, roundMatch);
               cumulativeWorker += entry.totalCompWorker || 0;
               cumulativeCustomer += entry.totalCompCustomer || 0;
-
               const cost = effortToTokens[entry.effort] || '';
 
               worksheet2.addRow({
@@ -1712,8 +1692,8 @@ router.post('/exporttoexcel', async (req, res) => {
                 totalCompWorker: entry.totalCompWorker || '',
                 effort: entry.effort || '',
                 cost: entry.effort === 0.1 ? 0 : cost,
-                cumulativeWorker: cumulativeWorker,
-                cumulativeCustomer: cumulativeCustomer,
+                cumulativeWorker,
+                cumulativeCustomer,
               });
             });
           }
@@ -1721,7 +1701,6 @@ router.post('/exporttoexcel', async (req, res) => {
       }
     }
 
-    // Send the workbook as a response
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
     await workbook.xlsx.write(res);
@@ -1732,6 +1711,7 @@ router.post('/exporttoexcel', async (req, res) => {
     res.status(500).send({ msg: "Error exporting data", error });
   }
 });
+
 
 
 module.exports = router;
