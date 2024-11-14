@@ -1343,18 +1343,28 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
       const sessionObj = await Sessions.findOne({ link });
       const sessionId = sessionObj._id.toHexString();
 
-      const existingResponse = await Response.findOne({ pnumber, sessionId });
+      const response = await Response.findOne({ pnumber, sessionId });
 
-      if (!existingResponse) {
-        return res.status(404).send({ msg: "Response not found" });
+      if (!response) {
+        response = new Response({
+          pnumber,
+          sessionId,
+          condition,
+          controllability1: Controllability1,
+          controllability2: Controllability2,
+          TipReason_Effort,
+          TipReason_SocialImage,
+          TipReason_SocialNorm
+        });
+      } else {
+        response.controllability1 = Controllability1;
+        response.controllability2 = Controllability2;
+        response.TipReason_Effort = TipReason_Effort;
+        response.TipReason_SocialImage = TipReason_SocialImage;
+        response.TipReason_SocialNorm = TipReason_SocialNorm;
       }
-      existingResponse.controllability1 = Controllability1;
-      existingResponse.controllability2 = Controllability2;
-      existingResponse.TipReason_Effort = TipReason_Effort;
-      existingResponse.TipReason_SocialImage = TipReason_SocialImage;
-      existingResponse.TipReason_SocialNorm = TipReason_SocialNorm;
 
-      await existingResponse.save();
+      await response.save();
 
       res.status(200).send({ msg: 'Response updated successfully' });
     } catch (error) {
