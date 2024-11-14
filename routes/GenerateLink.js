@@ -1678,8 +1678,10 @@ router.post('/exporttoexcel', async (req, res) => {
         matches = matches[0];
         const rounds = matches.matches;
 
+        // Initialize cumulative totals
         let cumulativeWorker = 0;
 
+        // Sort rounds with practice_round first, then rounds 1-10 in ascending order
         const sortedRounds = rounds.sort((a, b) => {
           if (a.roundnumber === 'practice_round') return -1;
           if (b.roundnumber === 'practice_round') return 1;
@@ -1691,11 +1693,11 @@ router.post('/exporttoexcel', async (req, res) => {
           const totalCompWorker = entry.totalCompWorker || 0;
 
           if (isPracticeRound) {
-            cumulativeWorker = 0;
-          } else if (index === 1) {
-            cumulativeWorker = totalCompWorker;
+            cumulativeWorker = 0; // Set cumulative for practice round to 0
+          } else if (index === 1 || isPracticeRound === false && index === 0) {
+            cumulativeWorker = totalCompWorker; // Set cumulative for round 1 to total compensation
           } else {
-            cumulativeWorker += totalCompWorker;
+            cumulativeWorker += totalCompWorker; // Accumulate for other rounds
           }
 
           const cost = effortToTokens[entry.effort] || '';
