@@ -1356,6 +1356,7 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
           TipReason_SocialImage,
           TipReason_SocialNorm
         });
+        res.status(200).send({ msg: 'was not there, but added' });
       } else {
         response.controllability1 = Controllability1;
         response.controllability2 = Controllability2;
