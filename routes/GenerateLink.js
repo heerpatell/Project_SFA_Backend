@@ -1687,37 +1687,51 @@ router.post('/exporttoexcel', async (req, res) => {
       if (matches.length > 0) {
         matches = matches[0]; // Assuming we want the first match document
         const rounds = matches.matches;
-
-        // Initialize cumulative totals
-        let cumulativeWorker = 0;
-        // let cumulativeCustomer = 0;
-
-        rounds.forEach((roundMatch, roundIndex) => {
-          if (roundMatch && Array.isArray(roundMatch)) {
-            roundMatch.forEach(entry => {
-              // console.log(Processing Round ${roundIndex + 1}:, roundMatch);
-              cumulativeWorker += entry.totalCompWorker || 0;
-              // cumulativeCustomer += entry.totalCompCustomer || 0;
-
-              const cost = effortToTokens[entry.effort] || '';
-
-              worksheet2.addRow({
-                sessionId: session._id.toString(),
-                roundnumber: roundIndex,
-                worker: entry.worker || '',
-                customer: entry.customer || '',
-                pretip: entry.pretip || '',
-                totalCompCustomer: entry.totalCompCustomer || '',
-                totalCompWorker: entry.totalCompWorker || '',
-                effort: entry.effort || '',
-                cost: entry.effort === 0.1 ? 0 : cost,
-                cumulativeWorker: cumulativeWorker,
-                // cumulativeCustomer: cumulativeCustomer,
-              });
+      
+        // Check if rounds is an array before sorting
+        if (Array.isArray(rounds)) {
+          // Initialize cumulative totals
+          let cumulativeWorker = 0;
+      
+          // Sort rounds with practice_round first, then rounds 1-10 in ascending order
+          const sortedRounds = rounds.sort((a, b) => {
+            if (a.roundnumber === 'practice_round') return -1;
+            if (b.roundnumber === 'practice_round') return 1;
+            return a.roundnumber - b.roundnumber;
+          });
+      
+          sortedRounds.forEach((entry, index) => {
+            const isPracticeRound = entry.roundnumber === 'practice_round';
+            const totalCompWorker = entry.totalCompWorker || 0;
+      
+            if (isPracticeRound) {
+              cumulativeWorker = 0; // Set cumulative for practice round to 0
+            } else if (index === 1 || isPracticeRound === false && index === 0) {
+              cumulativeWorker = totalCompWorker; // Set cumulative for round 1 to total compensation
+            } else {
+              cumulativeWorker += totalCompWorker; // Accumulate for other rounds
+            }
+      
+            const cost = effortToTokens[entry.effort] || '';
+      
+            worksheet2.addRow({
+              sessionId: session._id.toString(),
+              roundnumber: entry.roundnumber,
+              worker: entry.worker || '',
+              customer: entry.customer || '',
+              pretip: entry.pretip || '',
+              totalCompCustomer: entry.totalCompCustomer || '',
+              totalCompWorker: entry.totalCompWorker || '',
+              effort: entry.effort || '',
+              cost: entry.effort === 0.1 ? 0 : cost,
+              cumulativeWorker: cumulativeWorker,
             });
-          }
-        });
+          });
+        } else {
+          console.error("Error: 'rounds' is not an array. Received:", rounds);
+        }
       }
+      
     }
 
     // Send the workbook as a response
