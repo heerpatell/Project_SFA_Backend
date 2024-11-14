@@ -1339,11 +1339,10 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
     }
     try {
       const link = decodedToken.link;
-      console.log(1331, link)
       const sessionObj = await Sessions.findOne({ link });
       const sessionId = sessionObj._id.toHexString();
 
-      const response = await Response.findOne({ pnumber, sessionId });
+      let response = await Response.findOne({ pnumber, sessionId });
       console.log(1331, response)
       if (!response) {
         response = new Response({
