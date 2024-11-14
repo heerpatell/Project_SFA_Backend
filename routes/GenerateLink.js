@@ -1328,7 +1328,7 @@ router.post('/saveresponses', async (req, res) => {
 router.post('/saveresponsesforscreen23', async (req, res) => {
   const token = req.body.token;
   const { pnumber, condition, Controllability1, Controllability2, TipReason_Effort, TipReason_SocialImage, TipReason_SocialNorm } = req.body;
-
+  console.log(1331, req)
   if (!token) {
     return res.status(401).send({ msg: "Access denied" });
   }
@@ -1337,14 +1337,14 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
     if (err) {
       return res.status(403).send({ msg: "Access denied" });
     }
-
     try {
       const link = decodedToken.link;
+      console.log(1331, link)
       const sessionObj = await Sessions.findOne({ link });
       const sessionId = sessionObj._id.toHexString();
 
       const response = await Response.findOne({ pnumber, sessionId });
-
+      console.log(1331, response)
       if (!response) {
         response = new Response({
           pnumber,
