@@ -1551,50 +1551,63 @@ router.post('/postamount',async(req,res)=>{
 
 router.post('/exporttoexcel', async (req, res) => {
   try {
-    const workbook = new ExcelJS.Workbook(); // Create a new Excel workbook
-    const worksheet1 = workbook.addWorksheet('Session Data'); // Create a new worksheet for session data
-    const worksheet2 = workbook.addWorksheet('Round Details'); // Create a new worksheet for round details
+    const workbook = new ExcelJS.Workbook();
+    const worksheet1 = workbook.addWorksheet('Session Data');
+    const worksheet2 = workbook.addWorksheet('Round Details');
 
     // Define columns for the Session Data sheet
     worksheet1.columns = [
       { header: 'Session ID', key: '_id', width: 30 },
       { header: 'No of Participants', key: 'no_of_participants', width: 20 },
-      { header: 'No of Rounds', key: 'no_of_rounds', width: 17 },
-      { header: 'Condition', key: 'condition', width: 15 },
-      { header: 'Link', key: 'link', width: 15 },
-      { header: 'Participant Number', key: 'participant_number', width: 18 },
-      { header: 'Assigned Category', key: 'assigned_category', width: 20 },
+      { header: 'No of Rounds', key: 'no_of_rounds', width: 20 },
+      { header: 'Condition', key: 'condition', width: 30 },
+      { header: 'Link', key: 'link', width: 30 },
+      { header: 'Participant Number', key: 'participant_number', width: 20 },
+      { header: 'Assigned Category', key: 'assigned_category', width: 30 },
       { header: 'Gender', key: 'gender', width: 15 },
       { header: 'Age', key: 'age', width: 10 },
-      { header: 'Work Experience', key: 'workexperience', width:18 },
-      { header: 'Food Industry Experience', key: 'foodindustry', width: 22 },
-      { header: 'EffortSensitivity_Manager', key: 'EffortSensitivity_Manager', width: 28 },
-      { header: 'EffortSensitivity_Customer', key: 'EffortSensitivity_Customer', width: 28 },
-      { header: 'Observability_Manager', key: 'Observability_Manager', width: 28 },
-      { header: 'Observability_Customer', key: 'Observability_Customer', width: 28 },
-      { header: 'MentalAccount', key: 'MentalAccount', width: 25 },
-      { header: 'Controllability1', key: 'controllability1', width: 22 },
-      { header: 'Controllability2', key: 'controllability2', width: 22 },
-      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 22 },
-      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 22 },
-      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 22 },
+      { header: 'Work Experience', key: 'workexperience', width: 20 },
+      { header: 'Food Industry Experience', key: 'foodindustry', width: 25 },
+      { header: 'EffortSensitivity_Manager', key: 'EffortSensitivity_Manager', width: 30 },
+      { header: 'EffortSensitivity_Customer', key: 'EffortSensitivity_Customer', width: 30 },
+      { header: 'Observability_Manager', key: 'Observability_Manager', width: 30 },
+      { header: 'Observability_Customer', key: 'Observability_Customer', width: 30 },
+      { header: 'MentalAccount', key: 'MentalAccount', width: 30 },
+      { header: 'Controllability1', key: 'controllability1', width: 20 },
+      { header: 'Controllability2', key: 'controllability2', width: 20 },
       { header: 'Response', key: 'response', width: 50 },
-      { header: 'Amount', key: 'amount', width: 14 }
+      { header: 'Amount', key: 'amount', width: 25 },
+      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 20 },
+      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 20 },
+      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 20 },
     ];
 
-    // Define columns for the Round Details sheet
     worksheet2.columns = [
       { header: 'Session ID', key: 'sessionId', width: 30 },
       { header: 'Round Number', key: 'roundnumber', width: 20 },
-      { header: 'Worker', key: 'worker', width: 15 },
-      { header: 'Customer', key: 'customer', width: 15 },
-      { header: 'Effort', key: 'effort', width: 15 },
-      { header: 'Cost of Effort', key: 'cost', width: 20 },
-      { header: 'Tip', key: 'preTip', width: 10 },
-      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 32 },
-      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 32 },
-      { header: 'Cumulative Compensation Worker', key: 'totalComp', width: 32 },
+      { header: 'Worker', key: 'worker', width: 20 },
+      { header: 'Customer', key: 'customer', width: 20 },
+      { header: 'Effort', key: 'effort', width: 20 },
+      { header: 'Cost Of Effort', key: 'cost', width: 20 },
+      { header: 'Tip', key: 'pretip', width: 20 },
+      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
+      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
+      { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
+      // { header: 'Cumulative Compensation Customer', key: 'cumulativeCustomer', width: 35 },
     ];
+
+    const effortToTokens = {
+      0.1: 0,
+      0.2: 5,
+      0.3: 10,
+      0.4: 20,
+      0.5: 30,
+      0.6: 40,
+      0.7: 50,
+      0.8: 60,
+      0.9: 75,
+      1.0: 90,
+    };
 
     // Fetch all session documents from MongoDB
     const sessions = await Sessions.find({});
@@ -1607,43 +1620,17 @@ router.post('/exporttoexcel', async (req, res) => {
       // Fetch participants for this session ID
       const participants = await Participants.find({ sessionId: session._id });
 
+      const participantDataMap = {}; // To accumulate participant data
+
       if (participants.length > 0) {
         for (const participant of participants) {
           for (const p of participant.participants) {
             // Fetch responses for this session and participant number
             const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
 
-            // Add session data to the first worksheet
-            if (responses.length > 0) {
-              responses.forEach(response => {
-                worksheet1.addRow({
-                  _id: session._id.toString(),
-                  no_of_participants: session.no_of_participants,
-                  no_of_rounds: session.no_of_rounds,
-                  condition: session.condition,
-                  link: session.link,
-                  participant_number: p.participant_number,
-                  assigned_category: p.assigned_category,
-                  gender: p.gender,
-                  age: p.age,
-                  workexperience: p.workexperience,
-                  foodindustry: p.foodindustry,
-                  EffortSensitivity_Manager: response.EffortSensitivity_Manager,
-                  EffortSensitivity_Customer: response.EffortSensitivity_Customer,
-                  Observability_Manager: response.Observability_Manager,
-                  Observability_Customer: response.Observability_Customer,
-                  MentalAccount: response.MentalAccount,
-                  controllability1: response.controllability1,
-                  controllability2: response.controllability2,
-                  TipReason_Effort: response.TipReason_Effort,
-                  TipReason_SocialImage: response.TipReason_SocialImage,
-                  TipReason_SocialNorm: response.TipReason_SocialNorm,
-                  response: response.response,
-                  amount: response.amount
-                });
-              });
-            } else {
-              worksheet1.addRow({
+            if (!participantDataMap[p.participant_number]) {
+              // Initialize the object for this participant number
+              participantDataMap[p.participant_number] = {
                 _id: session._id.toString(),
                 no_of_participants: session.no_of_participants,
                 no_of_rounds: session.no_of_rounds,
@@ -1662,119 +1649,86 @@ router.post('/exporttoexcel', async (req, res) => {
                 MentalAccount: '',
                 controllability1: '',
                 controllability2: '',
+                response: '',
+                amount: '',
                 TipReason_Effort: '',
                 TipReason_SocialImage: '',
                 TipReason_SocialNorm: '',
-                response: '',
-                amount:''
+              };
+            }
+
+            // Add responses to the participant data
+            if (responses.length > 0) {
+              responses.forEach(response => {
+                participantDataMap[p.participant_number].EffortSensitivity_Manager = response.EffortSensitivity_Manager || participantDataMap[p.participant_number].EffortSensitivity_Manager;
+                participantDataMap[p.participant_number].EffortSensitivity_Customer = response.EffortSensitivity_Customer || participantDataMap[p.participant_number].EffortSensitivity_Customer;
+                participantDataMap[p.participant_number].Observability_Manager = response.Observability_Manager || participantDataMap[p.participant_number].Observability_Manager;
+                participantDataMap[p.participant_number].Observability_Customer = response.Observability_Customer || participantDataMap[p.participant_number].Observability_Customer;
+                participantDataMap[p.participant_number].MentalAccount = response.MentalAccount || participantDataMap[p.participant_number].MentalAccount;
+                participantDataMap[p.participant_number].controllability1 = response.controllability1 || participantDataMap[p.participant_number].controllability1;
+                participantDataMap[p.participant_number].controllability2 = response.controllability2 || participantDataMap[p.participant_number].controllability2;
+                participantDataMap[p.participant_number].response = response.response || participantDataMap[p.participant_number].response;
+                participantDataMap[p.participant_number].amount = response.amount || participantDataMap[p.participant_number].amount;
+                participantDataMap[p.participant_number].TipReason_Effort = response.TipReason_Effort || participantDataMap[p.participant_number].TipReason_Effort;
+                participantDataMap[p.participant_number].TipReason_SocialImage = response.TipReason_SocialImage || participantDataMap[p.participant_number].TipReason_SocialImage;
+                participantDataMap[p.participant_number].TipReason_SocialNorm = response.TipReason_SocialNorm || participantDataMap[p.participant_number].TipReason_SocialNorm;
               });
             }
           }
         }
-      } else {
-        worksheet1.addRow({
-          _id: session._id.toString(),
-          no_of_participants: session.no_of_participants,
-          no_of_rounds: session.no_of_rounds,
-          condition: session.condition,
-          link: session.link,
-          participant_number: '',
-          assigned_category: '',
-          gender: '',
-          age: '',
-          workexperience: '',
-          foodindustry: '',
-          EffortSensitivity_Manager: '',
-          EffortSensitivity_Customer: '',
-          Observability_Manager: '',
-          Observability_Customer: '',
-          MentalAccount: '',
-          controllability1: '',
-          controllability2: '',
-          TipReason_Effort: '',
-          TipReason_SocialImage: '',
-          TipReason_SocialNorm: '',
-          response: '',
-          amount:''
-        });
+      }
+
+      // Add accumulated participant data to the worksheet
+      for (const participantKey in participantDataMap) {
+        worksheet1.addRow(participantDataMap[participantKey]);
       }
 
       let matches = await Match.find({ sessionId: session._id });
       if (matches.length > 0) {
-          matches = matches[0]; // Assuming we want the first match document
-          const rounds = matches.matches; // Assuming 'matches' holds the rounds
-      
-          rounds.forEach((roundMatch, roundIndex) => {
-            console.log(1584, roundMatch)
-            console.log(1585, roundIndex)
-            
-              if (roundMatch && Array.isArray(roundMatch)) {
-                  roundMatch.forEach(entry => {
+        matches = matches[0]; // Assuming we want the first match document
+        const rounds = matches.matches;
 
-                    let effortToTokens = {
-                      0.1: 0,
-                      0.2: 5,
-                      0.3: 10,
-                      0.4: 20,
-                      0.5: 30,
-                      0.6: 40,
-                      0.7: 50,
-                      0.8: 60,
-                      0.9: 75,
-                      1.0: 90,
-                    };
-                    let effortTokens = Number(effortToTokens[entry.effort]) || 0;  
+        // Initialize cumulative totals
+        let cumulativeWorker = 0;
+        // let cumulativeCustomer = 0;
 
-                      worksheet2.addRow({
-                          sessionId: session._id.toString(), // Include session ID if needed
-                          roundnumber: roundIndex, // Round numbers are usually 1-indexed
-                          worker: entry.worker || '', // Worker ID or name
-                          customer: entry.customer || '', // Customer ID or name
-                          effort: entry.effort || '',
-                          cost: effortTokens || '',
-                          preTip: entry.pretip || '', // Pre-tip information if it exists
-                          totalCompWorker: entry.totalCompWorker || '',
-                          totalCompCustomer:entry.totalCompCustomer || ''
-                      });
-                  });
-              }
-          });
-      
-          // Handle practice rounds
-          const practiceRounds = matches.practice_round || []; // Ensure practice_round is accessed correctly
-          practiceRounds.forEach((practice, index) => {
-              if (Array.isArray(practice)) {
-                  practice.forEach(entry => {
-                      worksheet2.addRow({
-                          sessionId: session._id.toString(),
-                          roundnumber: `Practice Round`, // Label practice rounds appropriately
-                          worker: entry.worker || '',
-                          customer: entry.customer || '',
-                          effort: entry.effort || '',
-                          cost: effortTokens || '',
-                          preTip: entry.pretip || '', // If there is a preTip for practice rounds
-                          totalCompWorker: entry.totalCompWorker || '',
-                          totalCompCustomer:entry.totalCompCustomer || ''
-                      });
-                  });
-              }
-          });
-      } else {
-          console.log(`No matches found for session ID: ${session._id}`);
+        rounds.forEach((roundMatch, roundIndex) => {
+          if (roundMatch && Array.isArray(roundMatch)) {
+            roundMatch.forEach(entry => {
+              console.log(`Processing Round ${roundIndex + 1}:`, roundMatch);
+              cumulativeWorker += entry.totalCompWorker || 0;
+              // cumulativeCustomer += entry.totalCompCustomer || 0;
+
+              const cost = effortToTokens[entry.effort] || '';
+
+              worksheet2.addRow({
+                sessionId: session._id.toString(),
+                roundnumber: roundIndex,
+                worker: entry.worker || '',
+                customer: entry.customer || '',
+                pretip: entry.pretip || '',
+                totalCompCustomer: entry.totalCompCustomer || '',
+                totalCompWorker: entry.totalCompWorker || '',
+                effort: entry.effort || '',
+                cost: entry.effort === 0.1 ? 0 : cost,
+                cumulativeWorker: cumulativeWorker,
+                // cumulativeCustomer: cumulativeCustomer,
+              });
+            });
+          }
+        });
       }
-
-
     }
 
-    // Send the Excel file to the frontend
-    res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
+    // Send the workbook as a response
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
+    await workbook.xlsx.write(res);
+    res.end();
 
-    await workbook.xlsx.write(res); // Write the Excel file to the response stream
-    res.end(); // End the response
   } catch (error) {
-    console.error("Error exporting to Excel:", error);
-    res.status(500).send({ msg: "Internal server error" });
+    console.error('Error exporting to Excel:', error);
+    res.status(500).send({ msg: "Error exporting data", error });
   }
 });
 
