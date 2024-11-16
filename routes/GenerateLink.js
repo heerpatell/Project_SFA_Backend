@@ -1594,39 +1594,32 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
     ];
 
-    const effortToTokens = {
-      0.1: 0,
-      0.2: 5,
-      0.3: 10,
-      0.4: 20,
-      0.5: 30,
-      0.6: 40,
-      0.7: 50,
-      0.8: 60,
-      0.9: 75,
-      1.0: 90,
-    };
-
     const sessions = await Sessions.find({});
-    if (sessions.length === 0) {
+    if (!sessions.length) {
       return res.status(404).send({ msg: 'No sessions found' });
     }
 
     for (const session of sessions) {
       const participants = await Participants.find({ sessionId: session._id });
-
       const participantDataMap = {};
+
       for (const participant of participants) {
         for (const p of participant.participants) {
           const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
+
           if (!participantDataMap[p.participant_number]) {
             participantDataMap[p.participant_number] = {
-              ...p,
               _id: session._id.toString(),
               no_of_participants: session.no_of_participants,
               no_of_rounds: session.no_of_rounds,
               condition: session.condition,
               link: session.link,
+              participant_number: p.participant_number,
+              assigned_category: p.assigned_category,
+              gender: p.gender,
+              age: p.age,
+              workexperience: p.workexperience,
+              foodindustry: p.foodindustry,
               EffortSensitivity_Manager: '',
               EffortSensitivity_Customer: '',
               Observability_Manager: '',
@@ -1652,20 +1645,14 @@ router.post('/exporttoexcel', async (req, res) => {
         worksheet1.addRow(participantDataMap[participantKey]);
       }
 
-      let matches = await Match.find({ sessionId: session._id });
-      if (matches.length > 0) {
-        const rounds = matches[0].matches.sort((a, b) => {
-          if (a.roundnumber === 'practice_round') return -1;
-          if (b.roundnumber === 'practice_round') return 1;
-          return a.roundnumber - b.roundnumber;
-        });
+      const matches = await Match.find({ sessionId: session._id });
+      if (matches.length) {
+        const rounds = matches[0].matches;
 
         let cumulativeWorker = 0;
 
-        rounds.forEach((entry) => {
-          if (entry.roundnumber !== 'practice_round') {
-            cumulativeWorker += entry.totalCompWorker || 0;
-          }
+        rounds.forEach((entry, index) => {
+          cumulativeWorker += entry.totalCompWorker || 0;
 
           worksheet2.addRow({
             sessionId: session._id.toString(),
@@ -1673,7 +1660,7 @@ router.post('/exporttoexcel', async (req, res) => {
             worker: entry.worker || '',
             customer: entry.customer || '',
             effort: entry.effort || '',
-            cost: effortToTokens[entry.effort] || '',
+            cost: entry.effort ? (entry.effort * 10).toFixed(2) : 0,
             pretip: entry.pretip || '',
             totalCompWorker: entry.totalCompWorker || '',
             totalCompCustomer: entry.totalCompCustomer || '',
@@ -1683,6 +1670,7 @@ router.post('/exporttoexcel', async (req, res) => {
       }
     }
 
+    // Set headers for download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
     await workbook.xlsx.write(res);
@@ -1692,6 +1680,7 @@ router.post('/exporttoexcel', async (req, res) => {
     res.status(500).send({ msg: 'Error exporting data', error });
   }
 });
+
 
 
 module.exports = router;
