@@ -1602,11 +1602,11 @@ router.post('/exporttoexcel', async (req, res) => {
     for (const session of sessions) {
       const participants = await Participants.find({ sessionId: session._id });
       const participantDataMap = {};
-
+    
       for (const participant of participants) {
         for (const p of participant.participants) {
           const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
-
+    
           if (!participantDataMap[p.participant_number]) {
             participantDataMap[p.participant_number] = {
               _id: session._id.toString(),
@@ -1634,26 +1634,33 @@ router.post('/exporttoexcel', async (req, res) => {
               TipReason_SocialNorm: '',
             };
           }
-
+    
           for (const response of responses) {
             Object.assign(participantDataMap[p.participant_number], response.toObject());
           }
         }
       }
-
+    
       for (const participantKey in participantDataMap) {
         worksheet1.addRow(participantDataMap[participantKey]);
       }
-
+    
       const matches = await Match.find({ sessionId: session._id });
-      if (matches.length) {
-        const rounds = matches[0].matches;
-
+      if (matches.length > 0) {
+        const roundsMap = matches[0].matches;
+        const roundsArray = Array.from(roundsMap.values()).flat();
+    
         let cumulativeWorker = 0;
-
-        rounds.forEach((entry, index) => {
+    
+        const sortedRounds = roundsArray.sort((a, b) => {
+          if (a.roundnumber === 'practice_round') return -1;
+          if (b.roundnumber === 'practice_round') return 1;
+          return a.roundnumber - b.roundnumber;
+        });
+    
+        sortedRounds.forEach((entry) => {
           cumulativeWorker += entry.totalCompWorker || 0;
-
+    
           worksheet2.addRow({
             sessionId: session._id.toString(),
             roundnumber: entry.roundnumber,
@@ -1668,7 +1675,7 @@ router.post('/exporttoexcel', async (req, res) => {
           });
         });
       }
-    }
+    }    
 
     // Set headers for download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
