@@ -1648,22 +1648,25 @@ router.post('/exporttoexcel', async (req, res) => {
       const matches = await Match.find({ sessionId: session._id });
       if (matches.length > 0) {
         const roundsMap = matches[0].matches;
+      
+        // Ensure roundsMap is iterable and convert it to an array
         const roundsArray = Array.from(roundsMap.values()).flat();
-    
+      
         let cumulativeWorker = 0;
-    
+      
+        // Sort and process rounds
         const sortedRounds = roundsArray.sort((a, b) => {
           if (a.roundnumber === 'practice_round') return -1;
           if (b.roundnumber === 'practice_round') return 1;
           return a.roundnumber - b.roundnumber;
         });
-    
-        sortedRounds.forEach((entry) => {
+      
+        sortedRounds.forEach((entry, index) => {
           cumulativeWorker += entry.totalCompWorker || 0;
-    
+      
           worksheet2.addRow({
             sessionId: session._id.toString(),
-            roundnumber: entry.roundnumber,
+            roundnumber: entry.roundnumber || '',
             worker: entry.worker || '',
             customer: entry.customer || '',
             effort: entry.effort || '',
@@ -1675,6 +1678,7 @@ router.post('/exporttoexcel', async (req, res) => {
           });
         });
       }
+      
     }    
 
     // Set headers for download
