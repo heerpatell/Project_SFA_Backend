@@ -1593,7 +1593,7 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Tip', key: 'preTip', width: 10 },
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 32 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 32 },
-      { header: 'Cumulative Compensation Worker', key: 'cumulativeCompWorker', width: 32 },
+      { header: 'Cumulative Compensation Worker', key: 'totalComp', width: 32 },
     ];
 
     // Fetch all session documents from MongoDB
@@ -1704,9 +1704,6 @@ router.post('/exporttoexcel', async (req, res) => {
           matches = matches[0]; // Assuming we want the first match document
           const rounds = matches.matches; // Assuming 'matches' holds the rounds
       
-
-          let cumulativeCompWorker = 0;
-
           rounds.forEach((roundMatch, roundIndex) => {
             console.log(1584, roundMatch)
             console.log(1585, roundIndex)
@@ -1728,9 +1725,6 @@ router.post('/exporttoexcel', async (req, res) => {
                     };
                     let effortTokens = Number(effortToTokens[entry.effort]) || 0;  
 
-
-                      cumulativeCompWorker += totalCompWorker;
-
                       worksheet2.addRow({
                           sessionId: session._id.toString(), // Include session ID if needed
                           roundnumber: roundIndex, // Round numbers are usually 1-indexed
@@ -1740,7 +1734,7 @@ router.post('/exporttoexcel', async (req, res) => {
                           cost: effortTokens || '',
                           preTip: entry.pretip || '', // Pre-tip information if it exists
                           totalCompWorker: entry.totalCompWorker || '',
-                          totalCompCustomer:cumulativeCompWorker || ''
+                          totalCompCustomer:entry.totalCompCustomer || ''
                       });
                   });
               }
