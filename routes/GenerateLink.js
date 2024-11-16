@@ -1705,37 +1705,39 @@ router.post('/exporttoexcel', async (req, res) => {
       
           // Handle practice rounds first
           const practiceRounds = matches.practice_round || []; // Ensure practice_round is accessed correctly
-          practiceRounds.forEach(practice => {
-              if (Array.isArray(practice)) {
-                  practice.forEach(entry => {
-                      let effortToTokens = {
-                          0.1: 0,
-                          0.2: 5,
-                          0.3: 10,
-                          0.4: 20,
-                          0.5: 30,
-                          0.6: 40,
-                          0.7: 50,
-                          0.8: 60,
-                          0.9: 75,
-                          1.0: 90,
-                      };
-                      let effortTokens = Number(effortToTokens[entry.effort]) || 0;
+          if (practiceRounds.length > 0) {
+              practiceRounds.forEach(practice => {
+                  if (Array.isArray(practice)) {
+                      practice.forEach(entry => {
+                          let effortToTokens = {
+                              0.1: 0,
+                              0.2: 5,
+                              0.3: 10,
+                              0.4: 20,
+                              0.5: 30,
+                              0.6: 40,
+                              0.7: 50,
+                              0.8: 60,
+                              0.9: 75,
+                              1.0: 90,
+                          };
+                          let effortTokens = Number(effortToTokens[entry.effort]) || 0;
       
-                      worksheet2.addRow({
-                          sessionId: session._id.toString(),
-                          roundnumber: "Practice Round",
-                          worker: entry.worker || '',
-                          customer: entry.customer || '',
-                          effort: entry.effort || '',
-                          cost: effortTokens || '',
-                          preTip: entry.pretip || '',
-                          totalCompWorker: entry.totalCompWorker || '',
-                          totalCompCustomer: entry.totalCompCustomer || ''
+                          worksheet2.addRow({
+                              sessionId: session._id.toString(),
+                              roundnumber: "Practice Round", // Clearly label practice rounds
+                              worker: entry.worker || '',
+                              customer: entry.customer || '',
+                              effort: entry.effort || '',
+                              cost: effortTokens || '',
+                              preTip: entry.pretip || '',
+                              totalCompWorker: entry.totalCompWorker || '',
+                              totalCompCustomer: entry.totalCompCustomer || ''
+                          });
                       });
-                  });
-              }
-          });
+                  }
+              });
+          }
       
           // Then handle the numbered rounds
           const rounds = matches.matches || [];
@@ -1758,7 +1760,7 @@ router.post('/exporttoexcel', async (req, res) => {
       
                       worksheet2.addRow({
                           sessionId: session._id.toString(),
-                          roundnumber: roundIndex + 1, // Start numbered rounds from 1
+                          roundnumber: (roundIndex + 1).toString(), // Properly number the rounds starting from 1
                           worker: entry.worker || '',
                           customer: entry.customer || '',
                           effort: entry.effort || '',
@@ -1773,6 +1775,7 @@ router.post('/exporttoexcel', async (req, res) => {
       } else {
           console.log(`No matches found for session ID: ${session._id}`);
       }
+      
     }
 
     // Send the Excel file to the frontend
