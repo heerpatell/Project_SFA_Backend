@@ -1593,7 +1593,7 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Tip', key: 'preTip', width: 10 },
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 32 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 32 },
-      { header: 'Cumulative Compensation Worker', key: 'totalComp', width: 32 },
+      { header: 'Cumulative Compensation Worker', key: 'cumulativeCompWorker', width: 32 },
     ];
 
     // Fetch all session documents from MongoDB
@@ -1760,7 +1760,7 @@ router.post('/exporttoexcel', async (req, res) => {
                           cost: effortTokens || '',
                           preTip: entry.pretip || '', // If there is a preTip for practice rounds
                           totalCompWorker: entry.totalCompWorker || '',
-                          totalCompCustomer: ''
+                          totalCompCustomer:entry.totalCompCustomer || ''
                       });
                   });
               }
