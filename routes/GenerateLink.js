@@ -1609,62 +1609,41 @@ router.post('/exporttoexcel', async (req, res) => {
 
     const sessions = await Sessions.find({});
     if (sessions.length === 0) {
-      return res.status(404).send({ msg: "No sessions found" });
+      return res.status(404).send({ msg: 'No sessions found' });
     }
 
     for (const session of sessions) {
       const participants = await Participants.find({ sessionId: session._id });
 
       const participantDataMap = {};
-      if (participants.length > 0) {
-        for (const participant of participants) {
-          for (const p of participant.participants) {
-            const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
+      for (const participant of participants) {
+        for (const p of participant.participants) {
+          const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
+          if (!participantDataMap[p.participant_number]) {
+            participantDataMap[p.participant_number] = {
+              ...p,
+              _id: session._id.toString(),
+              no_of_participants: session.no_of_participants,
+              no_of_rounds: session.no_of_rounds,
+              condition: session.condition,
+              link: session.link,
+              EffortSensitivity_Manager: '',
+              EffortSensitivity_Customer: '',
+              Observability_Manager: '',
+              Observability_Customer: '',
+              MentalAccount: '',
+              controllability1: '',
+              controllability2: '',
+              response: '',
+              amount: '',
+              TipReason_Effort: '',
+              TipReason_SocialImage: '',
+              TipReason_SocialNorm: '',
+            };
+          }
 
-            if (!participantDataMap[p.participant_number]) {
-              participantDataMap[p.participant_number] = {
-                _id: session._id.toString(),
-                no_of_participants: session.no_of_participants,
-                no_of_rounds: session.no_of_rounds,
-                condition: session.condition,
-                link: session.link,
-                participant_number: p.participant_number,
-                assigned_category: p.assigned_category,
-                gender: p.gender,
-                age: p.age,
-                workexperience: p.workexperience,
-                foodindustry: p.foodindustry,
-                EffortSensitivity_Manager: '',
-                EffortSensitivity_Customer: '',
-                Observability_Manager: '',
-                Observability_Customer: '',
-                MentalAccount: '',
-                controllability1: '',
-                controllability2: '',
-                response: '',
-                amount: '',
-                TipReason_Effort: '',
-                TipReason_SocialImage: '',
-                TipReason_SocialNorm: '',
-              };
-            }
-
-            if (responses.length > 0) {
-              responses.forEach(response => {
-                participantDataMap[p.participant_number].EffortSensitivity_Manager = response.EffortSensitivity_Manager || participantDataMap[p.participant_number].EffortSensitivity_Manager;
-                participantDataMap[p.participant_number].EffortSensitivity_Customer = response.EffortSensitivity_Customer || participantDataMap[p.participant_number].EffortSensitivity_Customer;
-                participantDataMap[p.participant_number].Observability_Manager = response.Observability_Manager || participantDataMap[p.participant_number].Observability_Manager;
-                participantDataMap[p.participant_number].Observability_Customer = response.Observability_Customer || participantDataMap[p.participant_number].Observability_Customer;
-                participantDataMap[p.participant_number].MentalAccount = response.MentalAccount || participantDataMap[p.participant_number].MentalAccount;
-                participantDataMap[p.participant_number].controllability1 = response.controllability1 || participantDataMap[p.participant_number].controllability1;
-                participantDataMap[p.participant_number].controllability2 = response.controllability2 || participantDataMap[p.participant_number].controllability2;
-                participantDataMap[p.participant_number].response = response.response || participantDataMap[p.participant_number].response;
-                participantDataMap[p.participant_number].amount = response.amount || participantDataMap[p.participant_number].amount;
-                participantDataMap[p.participant_number].TipReason_Effort = response.TipReason_Effort || participantDataMap[p.participant_number].TipReason_Effort;
-                participantDataMap[p.participant_number].TipReason_SocialImage = response.TipReason_SocialImage || participantDataMap[p.participant_number].TipReason_SocialImage;
-                participantDataMap[p.participant_number].TipReason_SocialNorm = response.TipReason_SocialNorm || participantDataMap[p.participant_number].TipReason_SocialNorm;
-              });
-            }
+          for (const response of responses) {
+            Object.assign(participantDataMap[p.participant_number], response.toObject());
           }
         }
       }
@@ -1675,42 +1654,30 @@ router.post('/exporttoexcel', async (req, res) => {
 
       let matches = await Match.find({ sessionId: session._id });
       if (matches.length > 0) {
-        matches = matches[0];
-        const rounds = matches.matches;
-
-        let cumulativeWorker = 0;
-
-        const sortedRounds = rounds.sort((a, b) => {
+        const rounds = matches[0].matches.sort((a, b) => {
           if (a.roundnumber === 'practice_round') return -1;
           if (b.roundnumber === 'practice_round') return 1;
           return a.roundnumber - b.roundnumber;
         });
 
-        sortedRounds.forEach((entry, index) => {
-          const isPracticeRound = entry.roundnumber === 'practice_round';
-          const totalCompWorker = entry.totalCompWorker || 0;
+        let cumulativeWorker = 0;
 
-          if (isPracticeRound) {
-            cumulativeWorker = 0;
-          } else if (index === 1) {
-            cumulativeWorker = totalCompWorker;
-          } else {
-            cumulativeWorker += totalCompWorker;
+        rounds.forEach((entry) => {
+          if (entry.roundnumber !== 'practice_round') {
+            cumulativeWorker += entry.totalCompWorker || 0;
           }
-
-          const cost = effortToTokens[entry.effort] || '';
 
           worksheet2.addRow({
             sessionId: session._id.toString(),
             roundnumber: entry.roundnumber,
             worker: entry.worker || '',
             customer: entry.customer || '',
-            pretip: entry.pretip || '',
-            totalCompCustomer: entry.totalCompCustomer || '',
-            totalCompWorker: entry.totalCompWorker || '',
             effort: entry.effort || '',
-            cost: entry.effort === 0.1 ? 0 : cost,
-            cumulativeWorker: cumulativeWorker,
+            cost: effortToTokens[entry.effort] || '',
+            pretip: entry.pretip || '',
+            totalCompWorker: entry.totalCompWorker || '',
+            totalCompCustomer: entry.totalCompCustomer || '',
+            cumulativeWorker,
           });
         });
       }
@@ -1720,11 +1687,11 @@ router.post('/exporttoexcel', async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (error) {
     console.error('Error exporting to Excel:', error);
-    res.status(500).send({ msg: "Error exporting data", error });
+    res.status(500).send({ msg: 'Error exporting data', error });
   }
 });
+
 
 module.exports = router;
