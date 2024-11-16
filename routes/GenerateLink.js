@@ -1551,11 +1551,11 @@ router.post('/postamount',async(req,res)=>{
 
 router.post('/exporttoexcel', async (req, res) => {
   try {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet1 = workbook.addWorksheet('Session Data');
-    const worksheet2 = workbook.addWorksheet('Round Details');
+    const workbook = new ExcelJS.Workbook(); // Create a new Excel workbook
+    const worksheet1 = workbook.addWorksheet('Session Data'); // Create a new worksheet for session data
+    const worksheet2 = workbook.addWorksheet('Round Details'); // Create a new worksheet for round details
 
-    // Define columns for the worksheets
+    // Define columns for the Session Data sheet
     worksheet1.columns = [
       { header: 'Session ID', key: '_id', width: 30 },
       { header: 'No of Participants', key: 'no_of_participants', width: 20 },
@@ -1566,12 +1566,23 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Assigned Category', key: 'assigned_category', width: 20 },
       { header: 'Gender', key: 'gender', width: 15 },
       { header: 'Age', key: 'age', width: 10 },
-      { header: 'Work Experience', key: 'workexperience', width: 18 },
+      { header: 'Work Experience', key: 'workexperience', width:18 },
       { header: 'Food Industry Experience', key: 'foodindustry', width: 22 },
+      { header: 'EffortSensitivity_Manager', key: 'EffortSensitivity_Manager', width: 28 },
+      { header: 'EffortSensitivity_Customer', key: 'EffortSensitivity_Customer', width: 28 },
+      { header: 'Observability_Manager', key: 'Observability_Manager', width: 28 },
+      { header: 'Observability_Customer', key: 'Observability_Customer', width: 28 },
+      { header: 'MentalAccount', key: 'MentalAccount', width: 25 },
+      { header: 'Controllability1', key: 'controllability1', width: 22 },
+      { header: 'Controllability2', key: 'controllability2', width: 22 },
+      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 22 },
+      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 22 },
+      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 22 },
       { header: 'Response', key: 'response', width: 50 },
       { header: 'Amount', key: 'amount', width: 14 }
     ];
 
+    // Define columns for the Round Details sheet
     worksheet2.columns = [
       { header: 'Session ID', key: 'sessionId', width: 30 },
       { header: 'Round Number', key: 'roundnumber', width: 20 },
@@ -1582,79 +1593,188 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Tip', key: 'preTip', width: 10 },
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 32 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 32 },
-      { header: 'Cumulative Compensation Worker', key: 'cumulativeCompWorker', width: 32 }
+      { header: 'Cumulative Compensation Worker', key: 'cumulativeCompWorker', width: 32 },
     ];
 
+    // Fetch all session documents from MongoDB
     const sessions = await Sessions.find({});
-    if (!sessions.length) {
-      return res.status(404).send({ msg: 'No sessions found' });
+
+    if (sessions.length === 0) {
+      return res.status(404).send({ msg: "No sessions found" });
     }
 
     for (const session of sessions) {
-      let cumulativeCompWorker = {}; // Track cumulative compensation for each worker
+      // Fetch participants for this session ID
+      const participants = await Participants.find({ sessionId: session._id });
 
-      const rounds = (await Match.findOne({ sessionId: session._id }))?.matches || [];
-      for (let roundIndex = 0; roundIndex < rounds.length; roundIndex++) {
-        const roundMatch = rounds[roundIndex];
-        if (Array.isArray(roundMatch)) {
-          for (const entry of roundMatch) {
-            const workerId = entry.worker || '';
-            const totalComp = Number(entry.totalCompWorker) || 0;
+      if (participants.length > 0) {
+        for (const participant of participants) {
+          for (const p of participant.participants) {
+            // Fetch responses for this session and participant number
+            const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
 
-            // Calculate cumulative compensation
-            if (!cumulativeCompWorker[workerId]) {
-              cumulativeCompWorker[workerId] = 0;
+            // Add session data to the first worksheet
+            if (responses.length > 0) {
+              responses.forEach(response => {
+                worksheet1.addRow({
+                  _id: session._id.toString(),
+                  no_of_participants: session.no_of_participants,
+                  no_of_rounds: session.no_of_rounds,
+                  condition: session.condition,
+                  link: session.link,
+                  participant_number: p.participant_number,
+                  assigned_category: p.assigned_category,
+                  gender: p.gender,
+                  age: p.age,
+                  workexperience: p.workexperience,
+                  foodindustry: p.foodindustry,
+                  EffortSensitivity_Manager: response.EffortSensitivity_Manager,
+                  EffortSensitivity_Customer: response.EffortSensitivity_Customer,
+                  Observability_Manager: response.Observability_Manager,
+                  Observability_Customer: response.Observability_Customer,
+                  MentalAccount: response.MentalAccount,
+                  controllability1: response.controllability1,
+                  controllability2: response.controllability2,
+                  TipReason_Effort: response.TipReason_Effort,
+                  TipReason_SocialImage: response.TipReason_SocialImage,
+                  TipReason_SocialNorm: response.TipReason_SocialNorm,
+                  response: response.response,
+                  amount: response.amount
+                });
+              });
+            } else {
+              worksheet1.addRow({
+                _id: session._id.toString(),
+                no_of_participants: session.no_of_participants,
+                no_of_rounds: session.no_of_rounds,
+                condition: session.condition,
+                link: session.link,
+                participant_number: p.participant_number,
+                assigned_category: p.assigned_category,
+                gender: p.gender,
+                age: p.age,
+                workexperience: p.workexperience,
+                foodindustry: p.foodindustry,
+                EffortSensitivity_Manager: '',
+                EffortSensitivity_Customer: '',
+                Observability_Manager: '',
+                Observability_Customer: '',
+                MentalAccount: '',
+                controllability1: '',
+                controllability2: '',
+                TipReason_Effort: '',
+                TipReason_SocialImage: '',
+                TipReason_SocialNorm: '',
+                response: '',
+                amount:''
+              });
             }
-            cumulativeCompWorker[workerId] += totalComp;
-
-            // Add data to the worksheet
-            worksheet2.addRow({
-              sessionId: session._id.toString(),
-              roundnumber: roundIndex + 1, // Assuming 1-based indexing for rounds
-              worker: workerId,
-              customer: entry.customer || '',
-              effort: entry.effort || '',
-              cost: entry.cost || '',
-              preTip: entry.pretip || '',
-              totalCompWorker: totalComp,
-              totalCompCustomer: entry.totalCompCustomer || '',
-              cumulativeCompWorker: cumulativeCompWorker[workerId]
-            });
           }
         }
+      } else {
+        worksheet1.addRow({
+          _id: session._id.toString(),
+          no_of_participants: session.no_of_participants,
+          no_of_rounds: session.no_of_rounds,
+          condition: session.condition,
+          link: session.link,
+          participant_number: '',
+          assigned_category: '',
+          gender: '',
+          age: '',
+          workexperience: '',
+          foodindustry: '',
+          EffortSensitivity_Manager: '',
+          EffortSensitivity_Customer: '',
+          Observability_Manager: '',
+          Observability_Customer: '',
+          MentalAccount: '',
+          controllability1: '',
+          controllability2: '',
+          TipReason_Effort: '',
+          TipReason_SocialImage: '',
+          TipReason_SocialNorm: '',
+          response: '',
+          amount:''
+        });
       }
 
-      // Handle practice rounds (skipping cumulative compensation)
-      const practiceRounds = (await Match.findOne({ sessionId: session._id }))?.practice_round || [];
-      for (const practice of practiceRounds) {
-        if (Array.isArray(practice)) {
-          for (const entry of practice) {
-            worksheet2.addRow({
-              sessionId: session._id.toString(),
-              roundnumber: 'Practice Round',
-              worker: entry.worker || '',
-              customer: entry.customer || '',
-              effort: entry.effort || '',
-              cost: entry.cost || '',
-              preTip: entry.pretip || '',
-              totalCompWorker: entry.totalCompWorker || '',
-              totalCompCustomer: entry.totalCompCustomer || '',
-              cumulativeCompWorker: '' // Leave empty for practice rounds
-            });
-          }
-        }
+      let matches = await Match.find({ sessionId: session._id });
+      if (matches.length > 0) {
+          matches = matches[0]; // Assuming we want the first match document
+          const rounds = matches.matches; // Assuming 'matches' holds the rounds
+      
+          let cumulativeCompWorker = {}; // Object to track cumulative compensation for each worker
+
+          rounds.forEach((roundMatch, roundIndex) => {
+              if (roundMatch && Array.isArray(roundMatch)) {
+                  roundMatch.forEach(entry => {
+                      const workerId = entry.worker || ''; // Use worker ID or some unique identifier
+                      const totalComp = Number(entry.totalCompWorker) || 0; // Current round compensation
+          
+                      // Initialize cumulative compensation for this worker if not already present
+                      if (!cumulativeCompWorker[workerId]) {
+                          cumulativeCompWorker[workerId] = 0;
+                      }
+          
+                      // Update cumulative compensation for this worker
+                      cumulativeCompWorker[workerId] += totalComp;
+          
+                      // Add row to the Round Details worksheet
+                      worksheet2.addRow({
+                          sessionId: session._id.toString(), // Include session ID
+                          roundnumber: roundIndex + 1, // Rounds start from 1
+                          worker: workerId,
+                          customer: entry.customer || '',
+                          effort: entry.effort || '',
+                          cost: effortTokens || '',
+                          preTip: entry.pretip || '',
+                          totalCompWorker: totalComp,
+                          totalCompCustomer: entry.totalCompCustomer || '',
+                          cumulativeCompWorker: cumulativeCompWorker[workerId] // Add cumulative compensation
+                      });
+                  });
+              }
+          });
+          
+          // Handle practice rounds (cumulative compensation is skipped for practice rounds)
+          const practiceRounds = matches.practice_round || [];
+          practiceRounds.forEach(practice => {
+              if (Array.isArray(practice)) {
+                  practice.forEach(entry => {
+                      worksheet2.addRow({
+                          sessionId: session._id.toString(),
+                          roundnumber: 'Practice Round', // Label practice rounds
+                          worker: entry.worker || '',
+                          customer: entry.customer || '',
+                          effort: entry.effort || '',
+                          cost: effortTokens || '',
+                          preTip: entry.pretip || '',
+                          totalCompWorker: entry.totalCompWorker || '',
+                          totalCompCustomer: entry.totalCompCustomer || '',
+                          cumulativeCompWorker: '' // Skip cumulative compensation
+                      });
+                  });
+              }
+          });
+          
+
+      } else {
+          console.log(`No matches found for session ID: ${session._id}`);
       }
+
+
     }
 
-    // Send the Excel file as a response
-    res.setHeader('Content-Disposition', 'attachment; filename="session_data.xlsx"');
+    // Send the Excel file to the frontend
+    res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
-    await workbook.xlsx.write(res);
-    res.end();
+    await workbook.xlsx.write(res); // Write the Excel file to the response stream
+    res.end(); // End the response
   } catch (error) {
-    console.error('Error exporting to Excel:', error);
-    res.status(500).send({ msg: 'Internal server error' });
+    console.error("Error exporting to Excel:", error);
+    res.status(500).send({ msg: "Internal server error" });
   }
 });
 
