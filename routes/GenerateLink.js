@@ -1593,7 +1593,7 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Tip', key: 'preTip', width: 10 },
       { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 32 },
       { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 32 },
-      { header: 'Cumulative Compensation Worker', key: 'cumulativeCompWorker', width: 32 },
+      { header: 'Cumulative Compensation Worker', key: 'totalComp', width: 32 },
     ];
 
     // Fetch all session documents from MongoDB
@@ -1704,59 +1704,61 @@ router.post('/exporttoexcel', async (req, res) => {
           matches = matches[0]; // Assuming we want the first match document
           const rounds = matches.matches; // Assuming 'matches' holds the rounds
       
-          let cumulativeCompWorker = {}; // Object to track cumulative compensation for each worker
+          rounds.forEach((roundMatch, roundIndex) => {
+            console.log(1584, roundMatch)
+            console.log(1585, roundIndex)
+            
+              if (roundMatch && Array.isArray(roundMatch)) {
+                  roundMatch.forEach(entry => {
 
-rounds.forEach((roundMatch, roundIndex) => {
-    if (roundMatch && Array.isArray(roundMatch)) {
-        roundMatch.forEach(entry => {
-            const workerId = entry.worker || ''; // Use worker ID or some unique identifier
-            const totalComp = Number(entry.totalCompWorker) || 0; // Current round compensation
+                    let effortToTokens = {
+                      0.1: 0,
+                      0.2: 5,
+                      0.3: 10,
+                      0.4: 20,
+                      0.5: 30,
+                      0.6: 40,
+                      0.7: 50,
+                      0.8: 60,
+                      0.9: 75,
+                      1.0: 90,
+                    };
+                    let effortTokens = Number(effortToTokens[entry.effort]) || 0;  
 
-            // Initialize cumulative compensation for this worker if not already present
-            if (!cumulativeCompWorker[workerId]) {
-                cumulativeCompWorker[workerId] = 0;
-            }
-
-            // Update cumulative compensation for this worker
-            cumulativeCompWorker[workerId] += totalComp;
-
-            worksheet2.addRow({
-                sessionId: session._id.toString(), // Include session ID if needed
-                roundnumber: roundIndex + 1, // Round numbers are usually 1-indexed
-                worker: workerId, // Worker ID or name
-                customer: entry.customer || '', // Customer ID or name
-                effort: entry.effort || '',
-                cost: effortTokens || '',
-                preTip: entry.pretip || '', // Pre-tip information if it exists
-                totalCompWorker: totalComp,
-                totalCompCustomer: entry.totalCompCustomer || '',
-                cumulativeCompWorker: cumulativeCompWorker[workerId] // Add cumulative compensation here
-            });
-        });
-    }
-});
-
-// Handle practice rounds (cumulative compensation is skipped for practice rounds)
-const practiceRounds = matches.practice_round || [];
-practiceRounds.forEach((practice, index) => {
-    if (Array.isArray(practice)) {
-        practice.forEach(entry => {
-            worksheet2.addRow({
-                sessionId: session._id.toString(),
-                roundnumber: 'Practice Round', // Label practice rounds
-                worker: entry.worker || '',
-                customer: entry.customer || '',
-                effort: entry.effort || '',
-                cost: effortTokens || '',
-                preTip: entry.pretip || '',
-                totalCompWorker: entry.totalCompWorker || '',
-                totalCompCustomer: entry.totalCompCustomer || '',
-                cumulativeCompWorker: '' // Leave blank for practice rounds
-            });
-        });
-    }
-});
-
+                      worksheet2.addRow({
+                          sessionId: session._id.toString(), // Include session ID if needed
+                          roundnumber: roundIndex, // Round numbers are usually 1-indexed
+                          worker: entry.worker || '', // Worker ID or name
+                          customer: entry.customer || '', // Customer ID or name
+                          effort: entry.effort || '',
+                          cost: effortTokens || '',
+                          preTip: entry.pretip || '', // Pre-tip information if it exists
+                          totalCompWorker: entry.totalCompWorker || '',
+                          totalCompCustomer:entry.totalCompCustomer || ''
+                      });
+                  });
+              }
+          });
+      
+          // Handle practice rounds
+          const practiceRounds = matches.practice_round || []; // Ensure practice_round is accessed correctly
+          practiceRounds.forEach((practice, index) => {
+              if (Array.isArray(practice)) {
+                  practice.forEach(entry => {
+                      worksheet2.addRow({
+                          sessionId: session._id.toString(),
+                          roundnumber: `Practice Round`, // Label practice rounds appropriately
+                          worker: entry.worker || '',
+                          customer: entry.customer || '',
+                          effort: entry.effort || '',
+                          cost: effortTokens || '',
+                          preTip: entry.pretip || '', // If there is a preTip for practice rounds
+                          totalCompWorker: entry.totalCompWorker || '',
+                          totalCompCustomer:entry.totalCompCustomer || ''
+                      });
+                  });
+              }
+          });
       } else {
           console.log(`No matches found for session ID: ${session._id}`);
       }
