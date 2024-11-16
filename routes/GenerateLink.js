@@ -1578,7 +1578,8 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 30 },
       { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 30 },
       { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 30 },
-      { header: 'Reason', key: 'reason', width: 50 }
+      { header: 'Response', key: 'reasponse', width: 50 },
+      { header: 'Amount', key: 'amount', width: 50 }
     ];
 
     // Define columns for the Round Details sheet
@@ -1587,9 +1588,11 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Round Number', key: 'roundnumber', width: 20 },
       { header: 'Worker', key: 'worker', width: 30 },
       { header: 'Customer', key: 'customer', width: 30 },
+      { header: 'Effort', key: 'effort', width: 20 },
+      { header: 'Cost of Effort', key: 'cost', width: 20 },
       { header: 'Tip', key: 'preTip', width: 20 },
-      { header: 'Total Compensation', key: 'totalComp', width: 20 },
-      { header: 'Effort', key: 'effort', width: 20 }
+      { header: 'Total Compensation', key: 'totalComp', width: 20 }
+      
     ];
 
     // Fetch all session documents from MongoDB
@@ -1634,7 +1637,8 @@ router.post('/exporttoexcel', async (req, res) => {
                   TipReason_Effort: response.TipReason_Effort,
                   TipReason_SocialImage: response.TipReason_SocialImage,
                   TipReason_SocialNorm: response.TipReason_SocialNorm,
-                  reason: response.reason
+                  reason: response.response,
+                  amount: response.amount
                 });
               });
             } else {
@@ -1660,7 +1664,8 @@ router.post('/exporttoexcel', async (req, res) => {
                 TipReason_Effort: '',
                 TipReason_SocialImage: '',
                 TipReason_SocialNorm: '',
-                reason: ''
+                response: '',
+                amount:''
               });
             }
           }
@@ -1688,7 +1693,8 @@ router.post('/exporttoexcel', async (req, res) => {
           TipReason_Effort: '',
           TipReason_SocialImage: '',
           TipReason_SocialNorm: '',
-          reason: ''
+          response: '',
+          amount:''
         });
       }
 
@@ -1703,14 +1709,31 @@ router.post('/exporttoexcel', async (req, res) => {
             
               if (roundMatch && Array.isArray(roundMatch)) {
                   roundMatch.forEach(entry => {
+
+                    let effortToTokens = {
+                      0.1: 0,
+                      0.2: 5,
+                      0.3: 10,
+                      0.4: 20,
+                      0.5: 30,
+                      0.6: 40,
+                      0.7: 50,
+                      0.8: 60,
+                      0.9: 75,
+                      1.0: 90,
+                    };
+                    let effortTokens = Number(effortToTokens[entry.effort]) || 0;  
+
                       worksheet2.addRow({
                           sessionId: session._id.toString(), // Include session ID if needed
                           roundnumber: roundIndex, // Round numbers are usually 1-indexed
                           worker: entry.worker || '', // Worker ID or name
                           customer: entry.customer || '', // Customer ID or name
+                          effort: entry.effort || '',
+                          cost: effortTokens || '',
                           preTip: entry.pretip || '', // Pre-tip information if it exists
-                          totalComp: entry.totalComp || '', // Total compensation for the round
-                          effort: entry.effort || ''
+                          totalComp: entry.totalComp || '' // Total compensation for the round
+                          
                       });
                   });
               }
@@ -1726,9 +1749,10 @@ router.post('/exporttoexcel', async (req, res) => {
                           roundnumber: `Practice Round`, // Label practice rounds appropriately
                           worker: entry.worker || '',
                           customer: entry.customer || '',
+                          effort: entry.effort || '',
+                          cost: effortTokens || '',
                           preTip: entry.pretip || '', // If there is a preTip for practice rounds
-                          totalComp: entry.totalComp || '',
-                          effort: entry.effort || ''
+                          totalComp: entry.totalComp || ''
                       });
                   });
               }
