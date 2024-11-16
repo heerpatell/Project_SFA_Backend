@@ -1551,10 +1551,11 @@ router.post('/postamount',async(req,res)=>{
 
 router.post('/exporttoexcel', async (req, res) => {
   try {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet1 = workbook.addWorksheet('Session Data');
-    const worksheet2 = workbook.addWorksheet('Round Details');
+    const workbook = new ExcelJS.Workbook(); // Create a new Excel workbook
+    const worksheet1 = workbook.addWorksheet('Session Data'); // Create a new worksheet for session data
+    const worksheet2 = workbook.addWorksheet('Round Details'); // Create a new worksheet for round details
 
+    // Define columns for the Session Data sheet
     worksheet1.columns = [
       { header: 'Session ID', key: '_id', width: 30 },
       { header: 'No of Participants', key: 'no_of_participants', width: 20 },
@@ -1572,126 +1573,183 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Observability_Manager', key: 'Observability_Manager', width: 30 },
       { header: 'Observability_Customer', key: 'Observability_Customer', width: 30 },
       { header: 'MentalAccount', key: 'MentalAccount', width: 30 },
-      { header: 'Controllability1', key: 'controllability1', width: 20 },
-      { header: 'Controllability2', key: 'controllability2', width: 20 },
-      { header: 'Response', key: 'response', width: 50 },
-      { header: 'Amount', key: 'amount', width: 25 },
-      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 20 },
-      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 20 },
-      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 20 },
+      { header: 'Controllability1', key: 'controllability1', width: 30 },
+      { header: 'Controllability2', key: 'controllability2', width: 30 },
+      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 30 },
+      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 30 },
+      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 30 },
+      { header: 'Reason', key: 'reason', width: 50 }
     ];
 
+    // Define columns for the Round Details sheet
     worksheet2.columns = [
       { header: 'Session ID', key: 'sessionId', width: 30 },
       { header: 'Round Number', key: 'roundnumber', width: 20 },
-      { header: 'Worker', key: 'worker', width: 20 },
-      { header: 'Customer', key: 'customer', width: 20 },
-      { header: 'Effort', key: 'effort', width: 20 },
-      { header: 'Cost Of Effort', key: 'cost', width: 20 },
-      { header: 'Tip', key: 'pretip', width: 20 },
-      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 30 },
-      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 30 },
-      { header: 'Cumulative Compensation Worker', key: 'cumulativeWorker', width: 35 },
+      { header: 'Worker', key: 'worker', width: 30 },
+      { header: 'Customer', key: 'customer', width: 30 },
+      { header: 'Tip', key: 'preTip', width: 20 },
+      { header: 'Total Compensation', key: 'totalComp', width: 20 },
+      { header: 'Effort', key: 'effort', width: 20 }
     ];
 
+    // Fetch all session documents from MongoDB
     const sessions = await Sessions.find({});
-    if (!sessions.length) {
-      return res.status(404).send({ msg: 'No sessions found' });
+
+    if (sessions.length === 0) {
+      return res.status(404).send({ msg: "No sessions found" });
     }
 
     for (const session of sessions) {
+      // Fetch participants for this session ID
       const participants = await Participants.find({ sessionId: session._id });
-      const participantDataMap = {};
-    
-      for (const participant of participants) {
-        for (const p of participant.participants) {
-          const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
-    
-          if (!participantDataMap[p.participant_number]) {
-            participantDataMap[p.participant_number] = {
-              _id: session._id.toString(),
-              no_of_participants: session.no_of_participants,
-              no_of_rounds: session.no_of_rounds,
-              condition: session.condition,
-              link: session.link,
-              participant_number: p.participant_number,
-              assigned_category: p.assigned_category,
-              gender: p.gender,
-              age: p.age,
-              workexperience: p.workexperience,
-              foodindustry: p.foodindustry,
-              EffortSensitivity_Manager: '',
-              EffortSensitivity_Customer: '',
-              Observability_Manager: '',
-              Observability_Customer: '',
-              MentalAccount: '',
-              controllability1: '',
-              controllability2: '',
-              response: '',
-              amount: '',
-              TipReason_Effort: '',
-              TipReason_SocialImage: '',
-              TipReason_SocialNorm: '',
-            };
-          }
-    
-          for (const response of responses) {
-            Object.assign(participantDataMap[p.participant_number], response.toObject());
+
+      if (participants.length > 0) {
+        for (const participant of participants) {
+          for (const p of participant.participants) {
+            // Fetch responses for this session and participant number
+            const responses = await Response.find({ sessionId: session._id, pnumber: p.participant_number });
+
+            // Add session data to the first worksheet
+            if (responses.length > 0) {
+              responses.forEach(response => {
+                worksheet1.addRow({
+                  _id: session._id.toString(),
+                  no_of_participants: session.no_of_participants,
+                  no_of_rounds: session.no_of_rounds,
+                  condition: session.condition,
+                  link: session.link,
+                  participant_number: p.participant_number,
+                  assigned_category: p.assigned_category,
+                  gender: p.gender,
+                  age: p.age,
+                  workexperience: p.workexperience,
+                  foodindustry: p.foodindustry,
+                  EffortSensitivity_Manager: response.EffortSensitivity_Manager,
+                  EffortSensitivity_Customer: response.EffortSensitivity_Customer,
+                  Observability_Manager: response.Observability_Manager,
+                  Observability_Customer: response.Observability_Customer,
+                  MentalAccount: response.MentalAccount,
+                  controllability1: response.controllability1,
+                  controllability2: response.controllability2,
+                  TipReason_Effort: response.TipReason_Effort,
+                  TipReason_SocialImage: response.TipReason_SocialImage,
+                  TipReason_SocialNorm: response.TipReason_SocialNorm,
+                  reason: response.reason
+                });
+              });
+            } else {
+              worksheet1.addRow({
+                _id: session._id.toString(),
+                no_of_participants: session.no_of_participants,
+                no_of_rounds: session.no_of_rounds,
+                condition: session.condition,
+                link: session.link,
+                participant_number: p.participant_number,
+                assigned_category: p.assigned_category,
+                gender: p.gender,
+                age: p.age,
+                workexperience: p.workexperience,
+                foodindustry: p.foodindustry,
+                EffortSensitivity_Manager: '',
+                EffortSensitivity_Customer: '',
+                Observability_Manager: '',
+                Observability_Customer: '',
+                MentalAccount: '',
+                controllability1: '',
+                controllability2: '',
+                TipReason_Effort: '',
+                TipReason_SocialImage: '',
+                TipReason_SocialNorm: '',
+                reason: ''
+              });
+            }
           }
         }
-      }
-    
-      for (const participantKey in participantDataMap) {
-        worksheet1.addRow(participantDataMap[participantKey]);
-      }
-    
-      const matches = await Match.find({ sessionId: session._id });
-      if (matches.length > 0) {
-        const roundsMap = matches[0].matches;
-      
-        // Ensure roundsMap is iterable and convert it to an array
-        const roundsArray = Array.from(roundsMap.values()).flat();
-      
-        let cumulativeWorker = 0;
-      
-        // Sort and process rounds
-        const sortedRounds = roundsArray.sort((a, b) => {
-          if (a.roundnumber === 'practice_round') return -1;
-          if (b.roundnumber === 'practice_round') return 1;
-          return a.roundnumber - b.roundnumber;
-        });
-      
-        sortedRounds.forEach((entry, index) => {
-          cumulativeWorker += entry.totalCompWorker || 0;
-      
-          worksheet2.addRow({
-            sessionId: session._id.toString(),
-            roundnumber: entry.roundnumber || '',
-            worker: entry.worker || '',
-            customer: entry.customer || '',
-            effort: entry.effort || '',
-            cost: entry.effort ? (entry.effort * 10).toFixed(2) : 0,
-            pretip: entry.pretip || '',
-            totalCompWorker: entry.totalCompWorker || '',
-            totalCompCustomer: entry.totalCompCustomer || '',
-            cumulativeWorker,
-          });
+      } else {
+        worksheet1.addRow({
+          _id: session._id.toString(),
+          no_of_participants: session.no_of_participants,
+          no_of_rounds: session.no_of_rounds,
+          condition: session.condition,
+          link: session.link,
+          participant_number: '',
+          assigned_category: '',
+          gender: '',
+          age: '',
+          workexperience: '',
+          foodindustry: '',
+          EffortSensitivity_Manager: '',
+          EffortSensitivity_Customer: '',
+          Observability_Manager: '',
+          Observability_Customer: '',
+          MentalAccount: '',
+          controllability1: '',
+          controllability2: '',
+          TipReason_Effort: '',
+          TipReason_SocialImage: '',
+          TipReason_SocialNorm: '',
+          reason: ''
         });
       }
-      
-    }    
 
-    // Set headers for download
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      let matches = await Match.find({ sessionId: session._id });
+      if (matches.length > 0) {
+          matches = matches[0]; // Assuming we want the first match document
+          const rounds = matches.matches; // Assuming 'matches' holds the rounds
+      
+          rounds.forEach((roundMatch, roundIndex) => {
+            console.log(1584, roundMatch)
+            console.log(1585, roundIndex)
+            
+              if (roundMatch && Array.isArray(roundMatch)) {
+                  roundMatch.forEach(entry => {
+                      worksheet2.addRow({
+                          sessionId: session._id.toString(), // Include session ID if needed
+                          roundnumber: roundIndex, // Round numbers are usually 1-indexed
+                          worker: entry.worker || '', // Worker ID or name
+                          customer: entry.customer || '', // Customer ID or name
+                          preTip: entry.pretip || '', // Pre-tip information if it exists
+                          totalComp: entry.totalComp || '', // Total compensation for the round
+                          effort: entry.effort || ''
+                      });
+                  });
+              }
+          });
+      
+          // Handle practice rounds
+          const practiceRounds = matches.practice_round || []; // Ensure practice_round is accessed correctly
+          practiceRounds.forEach((practice, index) => {
+              if (Array.isArray(practice)) {
+                  practice.forEach(entry => {
+                      worksheet2.addRow({
+                          sessionId: session._id.toString(),
+                          roundnumber: `Practice Round`, // Label practice rounds appropriately
+                          worker: entry.worker || '',
+                          customer: entry.customer || '',
+                          preTip: entry.pretip || '', // If there is a preTip for practice rounds
+                          totalComp: entry.totalComp || '',
+                          effort: entry.effort || ''
+                      });
+                  });
+              }
+          });
+      } else {
+          console.log(`No matches found for session ID: ${session._id}`);
+      }
+
+
+    }
+
+    // Send the Excel file to the frontend
     res.setHeader('Content-Disposition', 'attachment; filename=session_data.xlsx');
-    await workbook.xlsx.write(res);
-    res.end();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+    await workbook.xlsx.write(res); // Write the Excel file to the response stream
+    res.end(); // End the response
   } catch (error) {
-    console.error('Error exporting to Excel:', error);
-    res.status(500).send({ msg: 'Error exporting data', error });
+    console.error("Error exporting to Excel:", error);
+    res.status(500).send({ msg: "Internal server error" });
   }
 });
-
-
 
 module.exports = router;
