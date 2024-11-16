@@ -1559,40 +1559,41 @@ router.post('/exporttoexcel', async (req, res) => {
     worksheet1.columns = [
       { header: 'Session ID', key: '_id', width: 30 },
       { header: 'No of Participants', key: 'no_of_participants', width: 20 },
-      { header: 'No of Rounds', key: 'no_of_rounds', width: 20 },
-      { header: 'Condition', key: 'condition', width: 30 },
-      { header: 'Link', key: 'link', width: 30 },
-      { header: 'Participant Number', key: 'participant_number', width: 20 },
-      { header: 'Assigned Category', key: 'assigned_category', width: 30 },
+      { header: 'No of Rounds', key: 'no_of_rounds', width: 17 },
+      { header: 'Condition', key: 'condition', width: 15 },
+      { header: 'Link', key: 'link', width: 15 },
+      { header: 'Participant Number', key: 'participant_number', width: 18 },
+      { header: 'Assigned Category', key: 'assigned_category', width: 20 },
       { header: 'Gender', key: 'gender', width: 15 },
       { header: 'Age', key: 'age', width: 10 },
-      { header: 'Work Experience', key: 'workexperience', width: 20 },
-      { header: 'Food Industry Experience', key: 'foodindustry', width: 25 },
-      { header: 'EffortSensitivity_Manager', key: 'EffortSensitivity_Manager', width: 30 },
-      { header: 'EffortSensitivity_Customer', key: 'EffortSensitivity_Customer', width: 30 },
-      { header: 'Observability_Manager', key: 'Observability_Manager', width: 30 },
-      { header: 'Observability_Customer', key: 'Observability_Customer', width: 30 },
-      { header: 'MentalAccount', key: 'MentalAccount', width: 30 },
-      { header: 'Controllability1', key: 'controllability1', width: 30 },
-      { header: 'Controllability2', key: 'controllability2', width: 30 },
-      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 30 },
-      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 30 },
-      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 30 },
-      { header: 'Response', key: 'reasponse', width: 50 },
-      { header: 'Amount', key: 'amount', width: 50 }
+      { header: 'Work Experience', key: 'workexperience', width:18 },
+      { header: 'Food Industry Experience', key: 'foodindustry', width: 22 },
+      { header: 'EffortSensitivity_Manager', key: 'EffortSensitivity_Manager', width: 28 },
+      { header: 'EffortSensitivity_Customer', key: 'EffortSensitivity_Customer', width: 28 },
+      { header: 'Observability_Manager', key: 'Observability_Manager', width: 28 },
+      { header: 'Observability_Customer', key: 'Observability_Customer', width: 28 },
+      { header: 'MentalAccount', key: 'MentalAccount', width: 25 },
+      { header: 'Controllability1', key: 'controllability1', width: 22 },
+      { header: 'Controllability2', key: 'controllability2', width: 22 },
+      { header: 'TipReason_Effort', key: 'TipReason_Effort', width: 22 },
+      { header: 'TipReason_SocialImage', key: 'TipReason_SocialImage', width: 22 },
+      { header: 'TipReason_SocialNorm', key: 'TipReason_SocialNorm', width: 22 },
+      { header: 'Response', key: 'response', width: 50 },
+      { header: 'Amount', key: 'amount', width: 14 }
     ];
 
     // Define columns for the Round Details sheet
     worksheet2.columns = [
       { header: 'Session ID', key: 'sessionId', width: 30 },
       { header: 'Round Number', key: 'roundnumber', width: 20 },
-      { header: 'Worker', key: 'worker', width: 30 },
-      { header: 'Customer', key: 'customer', width: 30 },
-      { header: 'Effort', key: 'effort', width: 20 },
+      { header: 'Worker', key: 'worker', width: 15 },
+      { header: 'Customer', key: 'customer', width: 15 },
+      { header: 'Effort', key: 'effort', width: 15 },
       { header: 'Cost of Effort', key: 'cost', width: 20 },
-      { header: 'Tip', key: 'preTip', width: 20 },
-      { header: 'Total Compensation', key: 'totalComp', width: 20 }
-      
+      { header: 'Tip', key: 'preTip', width: 10 },
+      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 20 },
+      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 20 },
+      { header: 'Cumulative Compensation Worker', key: 'totalComp', width: 20 },
     ];
 
     // Fetch all session documents from MongoDB
@@ -1732,8 +1733,8 @@ router.post('/exporttoexcel', async (req, res) => {
                           effort: entry.effort || '',
                           cost: effortTokens || '',
                           preTip: entry.pretip || '', // Pre-tip information if it exists
-                          totalComp: entry.totalComp || '' // Total compensation for the round
-                          
+                          totalCompWorker: entry.totalCompWorker || '',
+                          totalCompCustomer:entry.totalCompCustomer || ''
                       });
                   });
               }
@@ -1752,7 +1753,8 @@ router.post('/exporttoexcel', async (req, res) => {
                           effort: entry.effort || '',
                           cost: effortTokens || '',
                           preTip: entry.pretip || '', // If there is a preTip for practice rounds
-                          totalComp: entry.totalComp || ''
+                          totalCompWorker: entry.totalCompWorker || '',
+                          totalCompCustomer:entry.totalCompCustomer || ''
                       });
                   });
               }
