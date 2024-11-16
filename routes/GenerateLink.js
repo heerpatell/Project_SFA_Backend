@@ -1591,9 +1591,9 @@ router.post('/exporttoexcel', async (req, res) => {
       { header: 'Effort', key: 'effort', width: 15 },
       { header: 'Cost of Effort', key: 'cost', width: 20 },
       { header: 'Tip', key: 'preTip', width: 10 },
-      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 20 },
-      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 20 },
-      { header: 'Cumulative Compensation Worker', key: 'totalComp', width: 20 },
+      { header: 'Total Compensation Worker', key: 'totalCompWorker', width: 32 },
+      { header: 'Total Compensation Customer', key: 'totalCompCustomer', width: 32 },
+      { header: 'Cumulative Compensation Worker', key: 'totalComp', width: 32 },
     ];
 
     // Fetch all session documents from MongoDB
@@ -1638,7 +1638,7 @@ router.post('/exporttoexcel', async (req, res) => {
                   TipReason_Effort: response.TipReason_Effort,
                   TipReason_SocialImage: response.TipReason_SocialImage,
                   TipReason_SocialNorm: response.TipReason_SocialNorm,
-                  reason: response.response,
+                  response: response.response,
                   amount: response.amount
                 });
               });
