@@ -1352,28 +1352,25 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
 
           let response = await Response.findOne({ pnumber, sessionId });
           console.log('Existing response:', response);
-
           if (!response) {
-              console.log('Creating new response...');
-              response = new Response({
-                  pnumber,
-                  sessionId,
-                  condition,
-                  controllability1: Number(Controllability1) || null,
-                  controllability2: Number(Controllability2) || null,
-                  TipReason_Effort: Number(TipReason_Effort) || null,
-                  TipReason_SocialImage: Number(TipReason_SocialImage) || null,
-                  TipReason_SocialNorm: Number(TipReason_SocialNorm) || null,
-              });
-          } else {
-              console.log('Updating existing response...');
-              response.controllability1 = Number(Controllability1) || null;
-              response.controllability2 = Number(Controllability2) || null;
-              response.TipReason_Effort = Number(TipReason_Effort) || null;
-              response.TipReason_SocialImage = Number(TipReason_SocialImage) || null;
-              response.TipReason_SocialNorm = Number(TipReason_SocialNorm) || null;
-          }
-
+            response = new Response({
+                pnumber,
+                sessionId,
+                condition,
+                controllability1: Number(Controllability1) || null,
+                controllability2: Number(Controllability2) || null,
+                TipReason_Effort: Number(TipReason_Effort) || null,
+                TipReason_SocialImage: Number(TipReason_SocialImage) || null,
+                TipReason_SocialNorm: Number(TipReason_SocialNorm) || null,
+            });
+        } else {
+            if (Controllability1 != null) response.controllability1 = Number(Controllability1);
+            if (Controllability2 != null) response.controllability2 = Number(Controllability2);
+            if (TipReason_Effort != null) response.TipReason_Effort = Number(TipReason_Effort);
+            if (TipReason_SocialImage != null) response.TipReason_SocialImage = Number(TipReason_SocialImage);
+            if (TipReason_SocialNorm != null) response.TipReason_SocialNorm = Number(TipReason_SocialNorm);
+        }
+        
           await response.save();
           console.log('Saved response:', response);
 
