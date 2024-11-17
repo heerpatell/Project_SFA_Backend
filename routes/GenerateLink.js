@@ -1328,49 +1328,60 @@ router.post('/saveresponses', async (req, res) => {
 router.post('/saveresponsesforscreen23', async (req, res) => {
   const token = req.body.token;
   const { pnumber, condition, Controllability1, Controllability2, TipReason_Effort, TipReason_SocialImage, TipReason_SocialNorm } = req.body;
-  console.log(1331, req)
+
   if (!token) {
-    return res.status(401).send({ msg: "Access denied" });
+      return res.status(401).send({ msg: "Access denied" });
   }
 
-  console.log(1336, Controllability1)
   jwt.verify(token, "secretKey", async (err, decodedToken) => {
-    if (err) {
-      return res.status(403).send({ msg: "Access denied" });
-    }
-    try {
-      const link = decodedToken.link;
-      const sessionObj = await Sessions.findOne({ link });
-      const sessionId = sessionObj._id.toHexString();
+      if (err) {
+          return res.status(403).send({ msg: "Invalid or expired token" });
+      }
 
-      let response = await Response.findOne({ pnumber, sessionId });
-      // console.log(1331, response)
-      if (!response) {
-        response = new Response({
-            pnumber,
-            sessionId,
-            condition,
-            controllability1: Controllability1,
-            controllability2: Controllability2,
-            TipReason_Effort,
-            TipReason_SocialImage,
-            TipReason_SocialNorm
-        });
-    } else {
-        response.controllability1 = Controllability1;
-        response.controllability2 = Controllability2;
-        response.TipReason_Effort = TipReason_Effort;
-        response.TipReason_SocialImage = TipReason_SocialImage;
-        response.TipReason_SocialNorm = TipReason_SocialNorm;
-    }
-        
-      await response.save();
-      console.log(1368, response)
-      res.status(200).send({ msg: 'Response updated successfully' });
-    } catch (error) {
-      console.error("Error saving response:", error);
-      res.status(500).send({ msg: "Internal server error" });
-    }
+      try {
+          console.log('Decoded token:', decodedToken);
+          const link = decodedToken.link;
+          const sessionObj = await Sessions.findOne({ link });
+
+          if (!sessionObj) {
+              return res.status(404).send({ msg: "Session not found" });
+          }
+
+          const sessionId = sessionObj._id.toHexString();
+          console.log('Session ID:', sessionId);
+
+          let response = await Response.findOne({ pnumber, sessionId });
+          console.log('Existing response:', response);
+
+          if (!response) {
+              console.log('Creating new response...');
+              response = new Response({
+                  pnumber,
+                  sessionId,
+                  condition,
+                  controllability1: Number(Controllability1) || null,
+                  controllability2: Number(Controllability2) || null,
+                  TipReason_Effort: Number(TipReason_Effort) || null,
+                  TipReason_SocialImage: Number(TipReason_SocialImage) || null,
+                  TipReason_SocialNorm: Number(TipReason_SocialNorm) || null,
+              });
+          } else {
+              console.log('Updating existing response...');
+              response.controllability1 = Number(Controllability1) || null;
+              response.controllability2 = Number(Controllability2) || null;
+              response.TipReason_Effort = Number(TipReason_Effort) || null;
+              response.TipReason_SocialImage = Number(TipReason_SocialImage) || null;
+              response.TipReason_SocialNorm = Number(TipReason_SocialNorm) || null;
+          }
+
+          await response.save();
+          console.log('Saved response:', response);
+
+          res.status(200).send({ msg: !response.isNew ? 'Response updated successfully' : 'Response created successfully' });
+      } catch (error) {
+          console.error("Error saving response:", error);
+          res.status(500).send({ msg: "Internal server error" });
+      }
   });
 });
 
