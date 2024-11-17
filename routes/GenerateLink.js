@@ -1333,6 +1333,7 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
     return res.status(401).send({ msg: "Access denied" });
   }
 
+  console.log(1336, Controllability1)
   jwt.verify(token, "secretKey", async (err, decodedToken) => {
     if (err) {
       return res.status(403).send({ msg: "Access denied" });
