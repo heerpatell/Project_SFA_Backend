@@ -1347,24 +1347,23 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
       // console.log(1331, response)
       if (!response) {
         response = new Response({
-          pnumber,
-          sessionId,
-          condition,
-          controllability1: Controllability1,
-          controllability2: Controllability2,
-          TipReason_Effort,
-          TipReason_SocialImage,
-          TipReason_SocialNorm
+            pnumber,
+            sessionId,
+            condition,
+            controllability1: Controllability1,
+            controllability2: Controllability2,
+            TipReason_Effort,
+            TipReason_SocialImage,
+            TipReason_SocialNorm
         });
-        res.status(200).send({ msg: 'was not there, but added' });
-      } else {
+    } else {
         response.controllability1 = Controllability1;
         response.controllability2 = Controllability2;
         response.TipReason_Effort = TipReason_Effort;
         response.TipReason_SocialImage = TipReason_SocialImage;
         response.TipReason_SocialNorm = TipReason_SocialNorm;
-      }
-
+    }
+        
       await response.save();
       console.log(1368, response)
       res.status(200).send({ msg: 'Response updated successfully' });
