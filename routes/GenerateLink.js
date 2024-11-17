@@ -1365,7 +1365,7 @@ router.post('/saveresponsesforscreen23', async (req, res) => {
       }
 
       await response.save();
-
+      console.log(1368, response)
       res.status(200).send({ msg: 'Response updated successfully' });
     } catch (error) {
       console.error("Error saving response:", error);
