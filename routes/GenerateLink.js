@@ -619,9 +619,9 @@ router.post('/addeffortlevel', async (req, res) => {
       entry.totalCompCustomer = 60 + Number(effortlevel*200) - 40;
     } 
     else if(condition == 'Pre-Tip'){
-      console.log(622, typeof(entry.cost))
+      console.log(622, entry.cost)
       const workerTip = entry.pretip || 0; // Ensure tip is a number
-      entry.totalCompWorker = 160 + Number(workerTip) ; // Calculate total compensation for worker
+      entry.totalCompWorker = 160 + Number(workerTip) - entry.cost; // Calculate total compensation for worker
       entry.totalCompCustomer = 60 + Number(effortlevel * 200) - Number(workerTip); // Calculate total compensation for customer
       console.log(625,entry.totalCompCustomer)
       console.log(626,entry.totalCompWorker)
