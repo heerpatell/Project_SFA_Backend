@@ -613,6 +613,8 @@ router.post('/addeffortlevel', async (req, res) => {
     if(condition == 'Fixed Condition'){
       entry.totalCompWorker = 200 - Number(effortTokens);
       entry.totalCompCustomer = 60 + Number(effortlevel*200);
+      console.log(615, effortTokens)
+      console.log(616, entry.totalCompCustomer)
     }
     else if(condition == 'Service Charge'){
       entry.totalCompWorker = 160 + 40 - Number(effortTokens)
