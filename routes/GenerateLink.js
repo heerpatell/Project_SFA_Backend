@@ -559,6 +559,12 @@ router.post('/addeffortlevel', async (req, res) => {
   const token = req.body.token;
   let { pnumber, currentround, effortlevel, condition } = req.body;
 
+  if (effortlevel && typeof effortlevel === "string" && effortlevel.startsWith(".")) {
+    effortlevel = "0" + effortlevel;
+  }
+  effortlevel = parseFloat(effortlevel);
+
+  console.log(567, effortlevel)
   if (!token) {
     return res.status(401).send({ msg: "Access denied" });
   }
